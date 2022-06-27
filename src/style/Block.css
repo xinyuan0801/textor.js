@@ -1,0 +1,12 @@
+[contenteditable] {
+  outline: 0 solid transparent;
+}
+
+.block-container {
+  width: 100%;
+  height: auto;
+  min-height: 20px;
+  text-align: left;
+  padding: 5px 5px 5px 5px;
+  line-height: 1.6em;
+}
