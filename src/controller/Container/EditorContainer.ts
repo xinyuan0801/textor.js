@@ -1,5 +1,6 @@
-import { Iblock } from "./EditorBlock";
-import { TextBlock } from "./TextBlock";
+import { Iblock } from "../Block/EditorBlock";
+import { TextBlock } from "../Block/TextBlock";
+import {CursorPos} from "../Cursor/ICursorManager";
 
 export class EditorContainer {
   // blocks of editor
@@ -49,12 +50,12 @@ export class EditorContainer {
     return this.blocks.findIndex((block) => block.key === blockKey);
   }
 
-  setFocusByIndex(index: number): void {
-    this.blocks[index].setFocused();
+  setFocusByIndex(index: number, position: CursorPos): void {
+    this.blocks[index].setFocused(position);
   }
 
-  setFocusByKey(key: number): void {
+  setFocusByKey(key: number, position: CursorPos): void {
     const targetBlock = this.blocks.find((block) => block.key === key);
-    targetBlock.setFocused();
+    targetBlock.setFocused(position);
   }
 }

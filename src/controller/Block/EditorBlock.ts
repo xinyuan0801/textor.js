@@ -1,3 +1,5 @@
+import {CursorPos} from "../Cursor/ICursorManager";
+
 interface blockContent {
   textType: string;
   textContent: string;
@@ -10,7 +12,7 @@ interface Iblock {
   blockContents: blockContent[];
   ref: HTMLElement;
 
-  setFocused(): void;
+  setFocused(position: CursorPos): void;
 
 }
 
@@ -32,7 +34,7 @@ abstract class EditorBlock implements Iblock {
     this.ref = ref;
   }
 
-  abstract setFocused(): void;
+  abstract setFocused(position: CursorPos): void;
 
 
   abstract sync(currentContent: HTMLElement): void;

@@ -3,8 +3,9 @@ import "../style/Block.css";
 import {
   getSelectionRange,
   getSelectionCharacterOffsetWithin,
-} from "../controller/utilts";
+} from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
+import {CursorPos} from "../controller/Cursor/ICursorManager";
 
 const Block = React.memo((props) => {
   const { blockInfo, containerInfo, syncState } = props;
@@ -42,7 +43,7 @@ const Block = React.memo((props) => {
       const nextFocusedBlockIndex =
         selfIndex === 0 ? selfIndex + 1 : selfIndex - 1;
       if (containerInfo.getBlocks().length !== 1) {
-        containerInfo.setFocusByIndex(nextFocusedBlockIndex);
+        containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.start);
       }
       containerInfo.deleteBlock(key);
       syncState(containerInfo.getBlocks());
@@ -50,20 +51,20 @@ const Block = React.memo((props) => {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       const contentLength = blockInfo.getTotalSum();
       if (caretPos.end === contentLength) {
+        e.preventDefault();
         const selfIndex = containerInfo.getBlockIndex(key);
-        const nextFocusedBlockIndex =
-          selfIndex === containerInfo.getBlocks().length - 1
-            ? selfIndex
-            : selfIndex + 1;
-        containerInfo.setFocusByIndex(nextFocusedBlockIndex);
+        if (selfIndex < containerInfo.getBlocks().length - 1) {
+          containerInfo.setFocusByIndex(selfIndex + 1, CursorPos.start);
+        }
       }
     } else if (e.code === "ArrowUp") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       if (caretPos.start === 0) {
+        e.preventDefault();
         const selfIndex = containerInfo.getBlockIndex(key);
-        const nextFocusedBlockIndex =
-          selfIndex === 0 ? selfIndex : selfIndex - 1;
-        containerInfo.setFocusByIndex(nextFocusedBlockIndex, "end");
+        if (selfIndex > 0) {
+          containerInfo.setFocusByIndex(selfIndex - 1, CursorPos.end);
+        }
       }
     } else {
       debounceSave(blockInfo.ref);

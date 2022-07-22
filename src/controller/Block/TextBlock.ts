@@ -1,20 +1,21 @@
 import { EditorBlock, blockContent } from "./EditorBlock";
-import { normalTextConverter } from "./utilts";
+import { normalTextConverter } from "../Cursor/utilts";
+import {setCursorPos} from "../Cursor/manager";
+import {CursorPos} from "../Cursor/ICursorManager";
 
 export class TextBlock extends EditorBlock {
   constructor(key, type, blockContents, ref?) {
     super(key, type, blockContents);
   }
 
-  setFocused(): void {
-    // @ts-ignore
+  setFocused(position: CursorPos): void {
     this.ref.focus();
+    setCursorPos(this.ref, position);
   }
 
   sync(currentContent: HTMLElement): void {
     const newRenderBlockContent: blockContent[] = [];
     const childNodes = currentContent.childNodes;
-    console.log(childNodes);
     childNodes.forEach((child) => {
       if (child.nodeName === "#text") {
         newRenderBlockContent.push({

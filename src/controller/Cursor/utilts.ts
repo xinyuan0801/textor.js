@@ -1,4 +1,4 @@
-import { blockContent } from "./EditorBlock";
+import { blockContent } from "../Block/EditorBlock";
 
 export const normalTextConverter = (textContent: string): string => {
   return textContent
@@ -13,7 +13,6 @@ export const normalTextConverter = (textContent: string): string => {
 
 export const getSelectionRange = (blockContents: blockContent[], blockRef) => {
   const selectionObject = window.getSelection();
-  console.log(selectionObject);
   const selectionLength = selectionObject.toString().length;
   const targetNode = selectionObject.anchorNode.parentNode;
   const childNodes: HTMLElement[] = Array.from(blockRef.childNodes);
