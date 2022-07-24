@@ -1,20 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import "../style/Block.css";
-import {
-  getSelectionRange,
-  getSelectionCharacterOffsetWithin,
-} from "../controller/Cursor/utilts";
+import {getSelectionCharacterOffsetWithin, getSelectionRange,} from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import { CursorPos } from "../controller/Cursor/ICursorManager";
+import {CursorPos} from "../controller/Cursor/ICursorManager";
+import {blockContent} from "../controller/Block/IEditorBlock";
+import {EditorBlock} from "../controller/Block/EditorBlock";
+import {EditorContainer} from "../controller/Container/EditorContainer";
 
-const Block = (props) => {
-  const { blockInfo, containerInfo, syncState } = props;
-  const { key } = blockInfo;
-  const [blockContents, setBlockContents] = useState(blockInfo.getContent());
+const Block = React.memo((props) => {
+  const {
+    blockInfo,
+    containerInfo,
+    syncState,
+  }: {
+    blockInfo: EditorBlock;
+    containerInfo: EditorContainer;
+    syncState: any;
+  } = props;
+  const [blockContents, setBlockContents]: [
+    blockContents: blockContent[],
+    setBlockContents: any
+  ] = useState<blockContent[]>(blockInfo.getContent());
 
   useEffect(() => {
-    blockInfo.setFocused();
-    blockInfo.configContentSetter(setBlockContents);
+    blockInfo.setFocused(CursorPos.end);
+    blockInfo.setContentSetter(setBlockContents);
   }, []);
 
   useEffect(() => {
@@ -22,7 +32,7 @@ const Block = (props) => {
   });
 
   const savingBlockContent = (e) => {
-    console.log("content saved")
+    console.log("content saved");
     blockInfo.sync(e);
   };
 
@@ -41,22 +51,25 @@ const Block = (props) => {
   const handleKeyDown = (e) => {
     if (e.code === "Enter") {
       e.preventDefault();
-      const targetIndex = containerInfo.getBlockIndex(key);
+      const targetIndex: number = containerInfo.getBlockIndex(
+        blockInfo.getKey()
+      );
       containerInfo.insertBlock(targetIndex + 1);
       syncState(containerInfo.getBlocks());
     } else if (e.code === "Backspace" && blockInfo.ref.innerHTML === "") {
       e.preventDefault();
-      const selfIndex = containerInfo.getBlockIndex(key);
+      const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       const nextFocusedBlockIndex =
         selfIndex === 0 ? selfIndex + 1 : selfIndex - 1;
-      if (containerInfo.getBlocks().length !== 1) {
+      containerInfo.deleteBlock(blockInfo.getKey());
+      syncState(containerInfo.getBlocks());
+      if (containerInfo.getBlocks().length !== 0) {
+        console.log("setting focus");
         containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
       }
-      containerInfo.deleteBlock(key);
-      syncState(containerInfo.getBlocks());
     } else if (e.code === "Backspace") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
-      const selfIndex = containerInfo.getBlockIndex(key);
+      const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       if (caretPos.start === 0 && selfIndex !== 0) {
         e.preventDefault();
         const prevBlock = containerInfo.getBlocks()[selfIndex - 1];
@@ -67,7 +80,6 @@ const Block = (props) => {
           prevBlock.setContent([...prevBlock.getContent(), ...curBlockContent]);
           // force rerender the block component to avoid virtual dom diff problem with text node
           prevBlock.setKey(Date.now());
-          prevBlock.renderContent();
           prevBlock.setFocused(CursorPos.end);
           containerInfo.deleteBlock(blockInfo.getKey());
         }
@@ -79,7 +91,7 @@ const Block = (props) => {
       const contentLength = blockInfo.getTotalSum();
       if (caretPos.end === contentLength) {
         e.preventDefault();
-        const selfIndex = containerInfo.getBlockIndex(key);
+        const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
         if (selfIndex < containerInfo.getBlocks().length - 1) {
           containerInfo.setFocusByIndex(selfIndex + 1, CursorPos.start);
         }
@@ -88,7 +100,7 @@ const Block = (props) => {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       if (caretPos.start === 0) {
         e.preventDefault();
-        const selfIndex = containerInfo.getBlockIndex(key);
+        const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
         if (selfIndex > 0) {
           containerInfo.setFocusByIndex(selfIndex - 1, CursorPos.end);
         }
@@ -98,7 +110,30 @@ const Block = (props) => {
     }
   };
 
-  const handleTextSelection = (e) => {
+  const parseBlockContent = (
+    content: blockContent,
+    index: number
+  ): HTMLElement | string => {
+    if (content.textType === "normal") {
+      return content.textContent;
+    } else if (content.textType === "mark") {
+      return <mark key={Date.now() + index}>{content.textContent}</mark>;
+    } else if (content.textType === "bold") {
+      return <b key={Date.now() + index}>{content.textContent}</b>;
+    } else if (content.textType === "link") {
+      return (
+        <a
+          href={content.linkHref}
+          contentEditable={false}
+          key={Date.now() + index}
+        >
+          {content.textContent}
+        </a>
+      );
+    }
+  };
+
+  const handleTextSelection = () => {
     getSelectionRange(blockInfo.getContent(), blockInfo.getRef());
   };
 
@@ -112,27 +147,9 @@ const Block = (props) => {
       suppressContentEditableWarning={true}
       ref={(el) => collectRef(el)}
     >
-      {blockContents.map((content, index) => {
-        if (content.textType === "normal") {
-          return content.textContent;
-        } else if (content.textType === "mark") {
-          return <mark key={Date.now() + index}>{content.textContent}</mark>;
-        } else if (content.textType === "bold") {
-          return <b key={Date.now() + index}>{content.textContent}</b>;
-        } else if (content.textType === "link") {
-          return (
-            <a
-              href={content.linkHref}
-              contentEditable={false}
-              key={Date.now() + index}
-            >
-              {content.textContent}
-            </a>
-          );
-        }
-      })}
+      {blockContents.map(parseBlockContent)}
     </div>
   );
-};
+});
 
 export { Block };

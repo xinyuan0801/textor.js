@@ -1,4 +1,9 @@
-import { blockContent } from "../Block/EditorBlock";
+import { blockContent } from "../Block/IEditorBlock";
+
+interface ICursorPosition {
+  start: number,
+  end: number
+}
 
 export const normalTextConverter = (textContent: string): string => {
   return textContent
@@ -21,12 +26,12 @@ export const getSelectionRange = (blockContents: blockContent[], blockRef) => {
       ? child.parentNode.isSameNode(targetNode)
       : child.isSameNode(targetNode);
   });
-  // for (let i = 0; i < selectionObject.rangeCount; i++) {
-  //   annotateType(selectionObject.getRangeAt(i), "mark");
-  // }
+  for (let i = 0; i < selectionObject.rangeCount; i++) {
+    annotateType(selectionObject.getRangeAt(i), "mark");
+  }
 };
 
-export function getSelectionCharacterOffsetWithin(element) {
+export function getSelectionCharacterOffsetWithin(element): ICursorPosition {
   var start = 0;
   var end = 0;
   var doc = element.ownerDocument || element.document;
@@ -43,7 +48,7 @@ export function getSelectionCharacterOffsetWithin(element) {
       preCaretRange.setEnd(range.endContainer, range.endOffset);
       end = preCaretRange.toString().length;
     }
-  } else if ( (sel = doc.selection) && sel.type != "Control") {
+  } else if ( (sel = doc.selection) && sel.type !== "Control") {
     var textRange = sel.createRange();
     var preCaretTextRange = doc.body.createTextRange();
     preCaretTextRange.moveToElementText(element);

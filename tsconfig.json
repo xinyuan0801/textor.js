@@ -3,9 +3,11 @@
     "module": "commonjs",
     "target": "es5",
     "sourceMap": true,
-    "lib": ["es2021", "dom"]
+    "lib": ["es2021", "dom"],
+    "jsx": "react"
   },
   "jsx": "preserve",
   "exclude": ["node_modules"],
+  "check": "tsc --noEmit --jsx react",
   "strict": true
 }

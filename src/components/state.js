@@ -32,4 +32,4 @@ export function refsReducer(state, action) {
     case "collectRef":
       return { refs: { ...state.refs, [action.id]: [action.ref] } };
   }
-};
+}

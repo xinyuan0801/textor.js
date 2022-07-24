@@ -12,13 +12,11 @@ abstract class EditorBlock {
     key: number,
     type: string,
     blockContents: blockContent[],
-    contentSetter?: any,
     ref?: HTMLElement
   ) {
     this.key = key;
     this.type = type;
     this.blockContents = blockContents;
-    this.contentSetter = contentSetter;
     this.ref = ref;
   }
 
@@ -63,7 +61,7 @@ abstract class EditorBlock {
     return this.type;
   }
 
-  configContentSetter(contentSetter: any) {
+  setContentSetter(contentSetter: any) {
     this.contentSetter = contentSetter;
   }
 
@@ -71,6 +69,7 @@ abstract class EditorBlock {
     console.log('block self render', this.blockContents.slice());
     this.contentSetter(this.blockContents);
   }
+
 }
 
-export { blockContent, EditorBlock };
+export { EditorBlock };

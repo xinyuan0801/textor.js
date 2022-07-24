@@ -1,11 +1,12 @@
-import { EditorBlock, blockContent } from "./EditorBlock";
+import { EditorBlock } from "./EditorBlock";
 import { normalTextConverter } from "../Cursor/utilts";
 import {setCursorPos} from "../Cursor/CursorManager";
 import {CursorPos} from "../Cursor/ICursorManager";
+import {blockContent} from "./IEditorBlock";
 
 export class TextBlock extends EditorBlock {
-  constructor(key, type, blockContents, contentSetter?, ref?) {
-    super(key, type, blockContents);
+  constructor(key, type, blockContents, ref?) {
+    super(key, type, blockContents, ref);
   }
 
   setFocused(position: CursorPos): void {
