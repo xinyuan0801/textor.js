@@ -1,41 +1,28 @@
-import {CursorPos} from "../Cursor/ICursorManager";
+import { CursorPos } from "../Cursor/ICursorManager";
+import type {blockContent} from "./IEditorBlock";
 
-interface blockContent {
-  textType: string;
-  textContent: string;
-  linkHref?: string;
-}
-
-interface Iblock {
+abstract class EditorBlock {
   key: number;
   type: string;
   blockContents: blockContent[];
-  ref: HTMLElement;
-
-  setFocused(position: CursorPos): void;
-
-}
-
-abstract class EditorBlock implements Iblock {
-  key: number;
-  type: string;
-  blockContents: blockContent[];
+  contentSetter: any;
   ref: HTMLElement;
 
   protected constructor(
     key: number,
     type: string,
     blockContents: blockContent[],
+    contentSetter?: any,
     ref?: HTMLElement
   ) {
     this.key = key;
     this.type = type;
     this.blockContents = blockContents;
+    this.contentSetter = contentSetter;
     this.ref = ref;
   }
 
   abstract setFocused(position: CursorPos): void;
-
 
   abstract sync(currentContent: HTMLElement): void;
 
@@ -60,6 +47,7 @@ abstract class EditorBlock implements Iblock {
   }
 
   setContent(blockContents: blockContent[]): void {
+    console.log('new content', blockContents);
     this.blockContents = blockContents;
   }
 
@@ -67,9 +55,22 @@ abstract class EditorBlock implements Iblock {
     return this.key;
   }
 
+  setKey(newKey: number) {
+    this.key = newKey;
+  }
+
   getType(): string {
     return this.type;
   }
+
+  configContentSetter(contentSetter: any) {
+    this.contentSetter = contentSetter;
+  }
+
+  renderContent() {
+    console.log('block self render', this.blockContents.slice());
+    this.contentSetter(this.blockContents);
+  }
 }
 
-export { blockContent, Iblock, EditorBlock };
+export { blockContent, EditorBlock };

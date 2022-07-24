@@ -5,18 +5,24 @@ import {
   getSelectionCharacterOffsetWithin,
 } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import {CursorPos} from "../controller/Cursor/ICursorManager";
+import { CursorPos } from "../controller/Cursor/ICursorManager";
 
-const Block = React.memo((props) => {
+const Block = (props) => {
   const { blockInfo, containerInfo, syncState } = props;
   const { key } = blockInfo;
   const [blockContents, setBlockContents] = useState(blockInfo.getContent());
 
   useEffect(() => {
     blockInfo.setFocused();
+    blockInfo.configContentSetter(setBlockContents);
   }, []);
 
+  useEffect(() => {
+    console.log("rerendering", blockContents);
+  });
+
   const savingBlockContent = (e) => {
+    console.log("content saved")
     blockInfo.sync(e);
   };
 
@@ -39,14 +45,35 @@ const Block = React.memo((props) => {
       containerInfo.insertBlock(targetIndex + 1);
       syncState(containerInfo.getBlocks());
     } else if (e.code === "Backspace" && blockInfo.ref.innerHTML === "") {
+      e.preventDefault();
       const selfIndex = containerInfo.getBlockIndex(key);
       const nextFocusedBlockIndex =
         selfIndex === 0 ? selfIndex + 1 : selfIndex - 1;
       if (containerInfo.getBlocks().length !== 1) {
-        containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.start);
+        containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
       }
       containerInfo.deleteBlock(key);
       syncState(containerInfo.getBlocks());
+    } else if (e.code === "Backspace") {
+      const caretPos = getSelectionCharacterOffsetWithin(e.target);
+      const selfIndex = containerInfo.getBlockIndex(key);
+      if (caretPos.start === 0 && selfIndex !== 0) {
+        e.preventDefault();
+        const prevBlock = containerInfo.getBlocks()[selfIndex - 1];
+        if (prevBlock.ref.innerHTML === "") {
+          containerInfo.deleteBlock(prevBlock.getKey());
+        } else {
+          const curBlockContent = blockInfo.getContent();
+          prevBlock.setContent([...prevBlock.getContent(), ...curBlockContent]);
+          // force rerender the block component to avoid virtual dom diff problem with text node
+          prevBlock.setKey(Date.now());
+          prevBlock.renderContent();
+          prevBlock.setFocused(CursorPos.end);
+          containerInfo.deleteBlock(blockInfo.getKey());
+        }
+        syncState(containerInfo.getBlocks());
+      }
+      debounceSave(blockInfo.ref);
     } else if (e.code === "ArrowDown") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       const contentLength = blockInfo.getTotalSum();
@@ -106,6 +133,6 @@ const Block = React.memo((props) => {
       })}
     </div>
   );
-});
+};
 
 export { Block };

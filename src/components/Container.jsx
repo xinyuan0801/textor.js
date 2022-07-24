@@ -1,8 +1,8 @@
-import React, {useRef, useState, useCallback} from "react";
+import React, {useCallback, useRef, useState} from "react";
 
-import { Block } from "./Block.jsx";
-import { TextBlock } from "../controller/Block/TextBlock.ts";
-import { EditorContainer } from "../controller/Container/EditorContainer.ts";
+import {Block} from "./Block.jsx";
+import {TextBlock} from "../controller/Block/TextBlock.ts";
+import {EditorContainer} from "../controller/Container/EditorContainer.ts";
 
 import "../style/container.css";
 
@@ -13,6 +13,7 @@ function Container() {
 
   const syncBlockState = useCallback((newBlockArrayState) => {
     setBlockArray(newBlockArrayState.slice());
+    console.log('update container state', newBlockArrayState.slice());
   }, []);
 
   const handleClickContainer = (e) => {
@@ -29,6 +30,12 @@ function Container() {
 
   return (
     <>
+      <button onClick={() => {
+        const cloneBlocksInfo = eContainer.current.getBlocks().slice();
+        // due to useRef, manually calling rerendering
+        console.log('active render', cloneBlocksInfo);
+        setBlockArray(cloneBlocksInfo);
+      }}>active render</button>
       <div className="container" onClick={handleClickContainer}>
         {blockArray.map((block) => {
           return (

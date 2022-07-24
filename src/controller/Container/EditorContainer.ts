@@ -1,20 +1,20 @@
-import { Iblock } from "../Block/EditorBlock";
+import {EditorBlock} from "../Block/EditorBlock";
 import { TextBlock } from "../Block/TextBlock";
 import {CursorPos} from "../Cursor/ICursorManager";
 
 export class EditorContainer {
   // blocks of editor
-  blocks: Iblock[];
+  blocks: EditorBlock[];
 
-  constructor(initialBlock: Iblock[] = []) {
+  constructor(initialBlock: EditorBlock[] = []) {
     this.blocks = initialBlock;
   }
 
-  getBlocks(): Iblock[] {
+  getBlocks(): EditorBlock[] {
     return this.blocks;
   }
 
-  insertBlock(index: number, insertBlock?: Iblock): number {
+  insertBlock(index: number, insertBlock?: EditorBlock): number {
     const defaultBlock = new TextBlock(Date.now(), "text", []);
     if (index === -1 || index === this.blocks.length) {
       this.blocks.push(insertBlock || defaultBlock);
@@ -38,11 +38,11 @@ export class EditorContainer {
     return 1;
   }
 
-  setBlocks(newBlocks: Iblock[]): void {
+  setBlocks(newBlocks: EditorBlock[]): void {
     this.blocks = newBlocks;
 }
 
-  getBlock(blockKey: number): Iblock | 0 {
+  getBlock(blockKey: number): EditorBlock | 0 {
     return this.blocks.find((block) => block.key === blockKey) || 0;
   }
 
