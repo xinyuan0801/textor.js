@@ -1,12 +1,17 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import "../style/Block.css";
-import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
+import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import {CursorPos} from "../controller/Cursor/ICursorManager";
-import {blockContent, TEXT_STYLE, TEXT_TYPE} from "../controller/Block/IEditorBlock";
-import {EditorBlock} from "../controller/Block/EditorBlock";
-import {EditorContainer} from "../controller/Container/EditorContainer";
-import {TextBlock} from "../controller/Block/TextBlock";
+import { CursorPos } from "../controller/Cursor/ICursorManager";
+import {
+  blockContent,
+  TEXT_STYLE,
+  TEXT_TYPE,
+} from "../controller/Block/IEditorBlock";
+import { EditorBlock } from "../controller/Block/EditorBlock";
+import { EditorContainer } from "../controller/Container/EditorContainer";
+import { TextBlock } from "../controller/Block/TextBlock";
+import { ISelectedBlock } from "../controller/Container/IEditorContainer";
 
 const Block = React.memo((props) => {
   const {
@@ -119,12 +124,12 @@ const Block = React.memo((props) => {
     if (content.textType === TEXT_TYPE.normal) {
       let baseElement = content.textContent;
       baseElement = content.isBold ? (
-        <b key={(Date.now() * Math.random()) + "bold"}>{baseElement}</b>
+        <b key={Date.now() * Math.random() + "bold"}>{baseElement}</b>
       ) : (
         baseElement
       );
       baseElement = content.isMarked ? (
-        <mark key={(Date.now() * Math.random()) + "marked"}>{baseElement}</mark>
+        <mark key={Date.now() * Math.random() + "marked"}>{baseElement}</mark>
       ) : (
         baseElement
       );
@@ -145,15 +150,12 @@ const Block = React.memo((props) => {
   const handleTextSelection = () => {
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
     if (caretPos.start !== caretPos.end) {
-      console.log("selection", caretPos);
-      (blockInfo as TextBlock).markSelectedText(
-        TEXT_STYLE.marked,
-        caretPos.start,
-        caretPos.end
-      );
-      blockInfo.setKey(Date.now());
-      console.log("container", containerInfo.getBlocks());
-      syncState(containerInfo.getBlocks());
+      const selectedBlockInfo: ISelectedBlock = {
+        blockKey: blockInfo.getKey(),
+        selectionStart: caretPos.start,
+        selectionEnd: caretPos.end,
+      };
+      containerInfo.setCurrentSelectedBlock(selectedBlockInfo);
     }
   };
 

@@ -61,7 +61,6 @@ export class TextBlock extends EditorBlock {
     selectionEnd: number,
     newType: TEXT_STYLE
   ) {
-    console.log(contentStart);
     const blockContent = this.getContents();
     const targetContent = blockContent[contentIndex];
     const contentEnd =
@@ -80,11 +79,12 @@ export class TextBlock extends EditorBlock {
     ) {
       console.log("case 2");
       const selectedText = targetContent.textContent.slice(
-        contentStart - selectionStart
+        selectionStart - contentStart
       );
+      console.log(selectedText, contentStart, selectionStart);
       targetContent.textContent = targetContent.textContent.slice(
         0,
-        contentStart - selectionStart
+        selectionStart - contentStart
       );
       const newContent: blockContent = {
         textContent: selectedText,
@@ -153,8 +153,8 @@ export class TextBlock extends EditorBlock {
       );
       console.log(thirdContent);
       blockContent.splice(contentIndex + 1, 0, newContent, thirdContent);
-      this.setContent(blockContent);
     }
+    this.setContent(blockContent);
   }
 
   markSelectedText(type: TEXT_STYLE, startIndex: number, endIndex: number) {
@@ -185,8 +185,9 @@ export class TextBlock extends EditorBlock {
         endIndex
       )
     ) {
+      const currentContentOriginLength = currentContent[currentContentIndex].textContent.length
       const rightBound =
-        leftBound + currentContent[currentContentIndex].textContent.length;
+        leftBound + currentContentOriginLength;
       console.log("in while", currentContent[currentContentIndex]);
       this.makeBlockContent(
         currentContentIndex,
@@ -203,13 +204,14 @@ export class TextBlock extends EditorBlock {
         console.log("+2 loaded");
         currentContentIndex += 2;
       } else if (leftBound <= startIndex && rightBound >= endIndex) {
-        console.log("+4 loaded");
+        console.log("+3 loaded");
         currentContentIndex += 3;
       } else {
         console.log("+1 loaded");
         currentContentIndex++;
       }
-      leftBound += currentContent[currentContentIndex]?.textContent.length;
+      leftBound += currentContentOriginLength;
+      console.log('new leftbound', leftBound);
     }
   }
 

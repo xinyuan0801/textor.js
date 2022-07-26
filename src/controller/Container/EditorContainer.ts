@@ -1,10 +1,11 @@
-import {EditorBlock} from "../Block/EditorBlock";
+import { EditorBlock } from "../Block/EditorBlock";
 import { TextBlock } from "../Block/TextBlock";
-import {CursorPos} from "../Cursor/ICursorManager";
+import { CursorPos } from "../Cursor/ICursorManager";
+import {ISelectedBlock} from "./IEditorContainer";
 
 export class EditorContainer {
-  // blocks of editor
   blocks: EditorBlock[];
+  currentSelectedBlock: ISelectedBlock;
 
   constructor(initialBlock: EditorBlock[] = []) {
     this.blocks = initialBlock;
@@ -40,9 +41,9 @@ export class EditorContainer {
 
   setBlocks(newBlocks: EditorBlock[]): void {
     this.blocks = newBlocks;
-}
+  }
 
-  getBlock(blockKey: number): EditorBlock | 0 {
+  getBlockByKey(blockKey: number): EditorBlock | 0 {
     return this.blocks.find((block) => block.key === blockKey) || 0;
   }
 
@@ -58,5 +59,13 @@ export class EditorContainer {
   setFocusByKey(key: number, position: CursorPos): void {
     const targetBlock = this.blocks.find((block) => block.key === key);
     targetBlock.setFocused(position);
+  }
+
+  setCurrentSelectedBlock(selectedBlockInfo: ISelectedBlock): void {
+    this.currentSelectedBlock = selectedBlockInfo;
+  }
+
+  getCurrentSelectedBlock(): ISelectedBlock {
+    return this.currentSelectedBlock;
   }
 }
