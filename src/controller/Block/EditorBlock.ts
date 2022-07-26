@@ -1,5 +1,5 @@
 import { CursorPos } from "../Cursor/ICursorManager";
-import type {blockContent} from "./IEditorBlock";
+import type { blockContent } from "./IEditorBlock";
 
 abstract class EditorBlock {
   key: number;
@@ -40,12 +40,12 @@ abstract class EditorBlock {
     this.ref = blockRef;
   }
 
-  getContent(): blockContent[] {
+  getContents(): blockContent[] {
     return this.blockContents;
   }
 
   setContent(blockContents: blockContent[]): void {
-    console.log('new content', blockContents);
+    console.log("new content", blockContents.slice());
     this.blockContents = blockContents;
   }
 
@@ -54,6 +54,7 @@ abstract class EditorBlock {
   }
 
   setKey(newKey: number) {
+    console.log("changing key", this.key, newKey);
     this.key = newKey;
   }
 
@@ -66,10 +67,8 @@ abstract class EditorBlock {
   }
 
   renderContent() {
-    console.log('block self render', this.blockContents.slice());
     this.contentSetter(this.blockContents);
   }
-
 }
 
 export { EditorBlock };

@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
 import "../style/Block.css";
-import {getSelectionCharacterOffsetWithin, getSelectionRange,} from "../controller/Cursor/utilts";
+import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
 import {CursorPos} from "../controller/Cursor/ICursorManager";
-import {blockContent} from "../controller/Block/IEditorBlock";
+import {blockContent, TEXT_STYLE, TEXT_TYPE} from "../controller/Block/IEditorBlock";
 import {EditorBlock} from "../controller/Block/EditorBlock";
 import {EditorContainer} from "../controller/Container/EditorContainer";
+import {TextBlock} from "../controller/Block/TextBlock";
 
 const Block = React.memo((props) => {
   const {
@@ -20,7 +21,7 @@ const Block = React.memo((props) => {
   const [blockContents, setBlockContents]: [
     blockContents: blockContent[],
     setBlockContents: any
-  ] = useState<blockContent[]>(blockInfo.getContent());
+  ] = useState<blockContent[]>(blockInfo.getContents());
 
   useEffect(() => {
     blockInfo.setFocused(CursorPos.end);
@@ -28,11 +29,10 @@ const Block = React.memo((props) => {
   }, []);
 
   useEffect(() => {
-    console.log("rerendering", blockContents);
+    console.log("rerendering", blockInfo.getKey());
   });
 
   const savingBlockContent = (e) => {
-    console.log("content saved");
     blockInfo.sync(e);
   };
 
@@ -64,7 +64,6 @@ const Block = React.memo((props) => {
       containerInfo.deleteBlock(blockInfo.getKey());
       syncState(containerInfo.getBlocks());
       if (containerInfo.getBlocks().length !== 0) {
-        console.log("setting focus");
         containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
       }
     } else if (e.code === "Backspace") {
@@ -76,8 +75,11 @@ const Block = React.memo((props) => {
         if (prevBlock.ref.innerHTML === "") {
           containerInfo.deleteBlock(prevBlock.getKey());
         } else {
-          const curBlockContent = blockInfo.getContent();
-          prevBlock.setContent([...prevBlock.getContent(), ...curBlockContent]);
+          const curBlockContent = blockInfo.getContents();
+          prevBlock.setContent([
+            ...prevBlock.getContents(),
+            ...curBlockContent,
+          ]);
           // force rerender the block component to avoid virtual dom diff problem with text node
           prevBlock.setKey(Date.now());
           prevBlock.setFocused(CursorPos.end);
@@ -114,13 +116,20 @@ const Block = React.memo((props) => {
     content: blockContent,
     index: number
   ): HTMLElement | string => {
-    if (content.textType === "normal") {
-      return content.textContent;
-    } else if (content.textType === "mark") {
-      return <mark key={Date.now() + index}>{content.textContent}</mark>;
-    } else if (content.textType === "bold") {
-      return <b key={Date.now() + index}>{content.textContent}</b>;
-    } else if (content.textType === "link") {
+    if (content.textType === TEXT_TYPE.normal) {
+      let baseElement = content.textContent;
+      baseElement = content.isBold ? (
+        <b key={(Date.now() * Math.random()) + "bold"}>{baseElement}</b>
+      ) : (
+        baseElement
+      );
+      baseElement = content.isMarked ? (
+        <mark key={(Date.now() * Math.random()) + "marked"}>{baseElement}</mark>
+      ) : (
+        baseElement
+      );
+      return baseElement;
+    } else if (content.textType === TEXT_TYPE.link) {
       return (
         <a
           href={content.linkHref}
@@ -134,7 +143,18 @@ const Block = React.memo((props) => {
   };
 
   const handleTextSelection = () => {
-    getSelectionRange(blockInfo.getContent(), blockInfo.getRef());
+    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+    if (caretPos.start !== caretPos.end) {
+      console.log("selection", caretPos);
+      (blockInfo as TextBlock).markSelectedText(
+        TEXT_STYLE.marked,
+        caretPos.start,
+        caretPos.end
+      );
+      blockInfo.setKey(Date.now());
+      console.log("container", containerInfo.getBlocks());
+      syncState(containerInfo.getBlocks());
+    }
   };
 
   return (
