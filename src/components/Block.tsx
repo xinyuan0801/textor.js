@@ -5,13 +5,14 @@ import debounce from "lodash/debounce";
 import { CursorPos } from "../controller/Cursor/ICursorManager";
 import {
   blockContent,
-  TEXT_STYLE,
+  TEXT_STYLE_ACTION,
   TEXT_TYPE,
 } from "../controller/Block/IEditorBlock";
 import { EditorBlock } from "../controller/Block/EditorBlock";
 import { EditorContainer } from "../controller/Container/EditorContainer";
 import { TextBlock } from "../controller/Block/TextBlock";
 import { ISelectedBlock } from "../controller/Container/IEditorContainer";
+import {safeJSONParse} from "../controller/Block/utils";
 
 const Block = React.memo((props) => {
   const {
@@ -53,7 +54,7 @@ const Block = React.memo((props) => {
     e.stopPropagation();
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === "Enter") {
       e.preventDefault();
       const targetIndex: number = containerInfo.getBlockIndex(
@@ -133,6 +134,11 @@ const Block = React.memo((props) => {
       ) : (
         baseElement
       );
+      baseElement = content.isUnderline ? (
+        <u key={Date.now() * Math.random() + "underline"}>{baseElement}</u>
+      ) : (
+        baseElement
+      );
       return baseElement;
     } else if (content.textType === TEXT_TYPE.link) {
       return (
@@ -159,6 +165,34 @@ const Block = React.memo((props) => {
     }
   };
 
+  const handleCopy = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+    const copiedContent = (blockInfo as TextBlock).copySelectedText(caretPos.start, caretPos.end);
+    const copyTextInfo = {textContent: copiedContent, key: "lovetiktok"};
+    const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
+    console.log(JSON.stringify(copyTextInfo));
+    console.log(navigator);
+    navigator.clipboard.writeText(copyTextInfoJsonString).then(() => {
+      console.info("copy event complete");
+    }, (e) => {
+      console.error(e);
+    });
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+    const plainData = e.clipboardData.getData("text/plain");
+    const pasteContent = safeJSONParse(plainData);
+    if (pasteContent && pasteContent.key === "lovetiktok") {
+      (blockInfo as TextBlock).insertBlockContents(pasteContent.textContent, caretPos.start);
+      blockInfo.setKey(Date.now());
+      syncState(containerInfo.getBlocks());
+      console.log(pasteContent);
+    }
+  }
+
   return (
     <div
       className="block-container"
@@ -166,6 +200,8 @@ const Block = React.memo((props) => {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onMouseUp={handleTextSelection}
+      onPaste={handlePaste}
+      onCopy={handleCopy}
       suppressContentEditableWarning={true}
       ref={(el) => collectRef(el)}
     >

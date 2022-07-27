@@ -6,7 +6,7 @@ import { TextBlock } from "../controller/Block/TextBlock";
 import "../style/container.css";
 import { useGenerateContainer } from "./ContainerHooks";
 import { EditorBlock } from "../controller/Block/EditorBlock";
-import { TEXT_STYLE, TEXT_TYPE } from "../controller/Block/IEditorBlock";
+import { TEXT_STYLE_ACTION, TEXT_TYPE } from "../controller/Block/IEditorBlock";
 
 function Container() {
   const containerInstance = useGenerateContainer();
@@ -31,17 +31,17 @@ function Container() {
     }
   };
 
-  const handleSelection = (type: TEXT_STYLE) => {
+  const handleSelection = (type: TEXT_STYLE_ACTION) => {
     const selectedInfo = containerInstance.current.getCurrentSelectedBlock();
     if (selectedInfo) {
       const targetBlock = containerInstance.current.getBlockByKey(
-          selectedInfo.blockKey
+        selectedInfo.blockKey
       );
       if (targetBlock !== 0) {
         (targetBlock as TextBlock).markSelectedText(
-            type,
-            selectedInfo.selectionStart,
-            selectedInfo.selectionEnd
+          type,
+          selectedInfo.selectionStart,
+          selectedInfo.selectionEnd
         );
         targetBlock.setKey(Date.now());
         console.log("container", containerInstance.current.getBlocks());
@@ -52,8 +52,48 @@ function Container() {
 
   return (
     <>
-      <button onClick={() => {handleSelection(TEXT_STYLE.marked)}}>mark</button>
-      <button onClick={() => {handleSelection(TEXT_STYLE.bold)}}>bold</button>
+      <button
+        onClick={() => {
+          handleSelection(TEXT_STYLE_ACTION.marked);
+        }}
+      >
+        标记
+      </button>
+      <button
+        onClick={() => {
+          handleSelection(TEXT_STYLE_ACTION.bold);
+        }}
+      >
+        粗体
+      </button>
+      <button
+        onClick={() => {
+          handleSelection(TEXT_STYLE_ACTION.underline);
+        }}
+      >
+        下划线
+      </button>
+      <button
+        onClick={() => {
+          handleSelection(TEXT_STYLE_ACTION.unmarked);
+        }}
+      >
+        取消标记
+      </button>
+      <button
+        onClick={() => {
+          handleSelection(TEXT_STYLE_ACTION.unbold);
+        }}
+      >
+        取消粗体
+      </button>
+      <button
+        onClick={() => {
+          handleSelection(TEXT_STYLE_ACTION.removeUnderline);
+        }}
+      >
+        删除下划线
+      </button>
       <div className="container" onClick={handleClickContainer}>
         {blockArray.map((block) => {
           return (

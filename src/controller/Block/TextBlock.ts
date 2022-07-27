@@ -2,8 +2,12 @@ import { EditorBlock } from "./EditorBlock";
 import { normalTextConverter } from "../Cursor/utilts";
 import { setCursorPos } from "../Cursor/CursorManager";
 import { CursorPos } from "../Cursor/ICursorManager";
-import { blockContent, TEXT_STYLE, TEXT_TYPE } from "./IEditorBlock";
-import { checkInSelection } from "./utils";
+import { blockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./IEditorBlock";
+import {
+  checkInSelection,
+  findFirstContent,
+  generateNewContent,
+} from "./utils";
 
 export class TextBlock extends EditorBlock {
   constructor(key, type, blockContents, ref?) {
@@ -24,21 +28,35 @@ export class TextBlock extends EditorBlock {
           textContent: normalTextConverter(child.textContent),
           isMarked: false,
           isBold: false,
+          isUnderline: false,
         });
       } else if (child.nodeName === "MARK") {
         const isBold = child.childNodes[0].nodeName === "B";
+        const isUnderline =
+          child.childNodes[0]?.childNodes[0]?.nodeName === "U";
         newRenderBlockContent.push({
           textType: TEXT_TYPE.normal,
           textContent: normalTextConverter(child.textContent),
           isMarked: true,
           isBold: isBold,
+          isUnderline: isUnderline,
         });
       } else if (child.nodeName === "B") {
+        const isUnderline = child.childNodes[0].nodeName === "U";
         newRenderBlockContent.push({
           textType: TEXT_TYPE.normal,
           textContent: normalTextConverter(child.textContent),
           isMarked: false,
           isBold: true,
+          isUnderline: isUnderline,
+        });
+      } else if (child.nodeName === "U") {
+        newRenderBlockContent.push({
+          textType: TEXT_TYPE.normal,
+          textContent: normalTextConverter(child.textContent),
+          isMarked: false,
+          isBold: false,
+          isUnderline: true,
         });
       } else if (child.nodeName === "A") {
         newRenderBlockContent.push({
@@ -52,7 +70,6 @@ export class TextBlock extends EditorBlock {
       }
     });
     this.blockContents = newRenderBlockContent;
-    console.log("new content", newRenderBlockContent);
   }
 
   makeBlockContent(
@@ -60,7 +77,7 @@ export class TextBlock extends EditorBlock {
     contentStart: number,
     selectionStart: number,
     selectionEnd: number,
-    newType: TEXT_STYLE
+    newType: TEXT_STYLE_ACTION
   ) {
     const blockContent = this.getContents();
     const targetContent = blockContent[contentIndex];
@@ -68,61 +85,57 @@ export class TextBlock extends EditorBlock {
       contentStart + blockContent[contentIndex].textContent.length;
     if (selectionStart <= contentStart && selectionEnd >= contentEnd) {
       console.log("case 1");
-      if (newType === TEXT_STYLE.bold) {
+      if (newType === TEXT_STYLE_ACTION.bold) {
         targetContent.isBold = true;
-      } else if (newType === TEXT_STYLE.marked) {
+      } else if (newType === TEXT_STYLE_ACTION.marked) {
         targetContent.isMarked = true;
+      } else if (newType === TEXT_STYLE_ACTION.unbold) {
+        targetContent.isBold = false;
+      } else if (newType === TEXT_STYLE_ACTION.unmarked) {
+        targetContent.isMarked = false;
+      } else if (newType === TEXT_STYLE_ACTION.underline) {
+        targetContent.isUnderline = true;
+      } else if (newType === TEXT_STYLE_ACTION.removeUnderline) {
+        targetContent.isUnderline = false;
       }
     } else if (
       contentStart <= selectionStart &&
       contentEnd <= selectionEnd &&
-      contentEnd >= selectionStart
+      contentEnd - 1 >= selectionStart
     ) {
       console.log("case 2");
-      const selectedText = targetContent.textContent.slice(
+      const newContentText = targetContent.textContent.slice(
         selectionStart - contentStart
       );
-      console.log(selectedText, contentStart, selectionStart);
+      console.log(newContentText, contentStart, selectionStart);
       targetContent.textContent = targetContent.textContent.slice(
         0,
         selectionStart - contentStart
       );
-      const newContent: blockContent = {
-        textContent: selectedText,
-        textType: TEXT_TYPE.normal,
-        isMarked: targetContent.isMarked,
-        isBold: targetContent.isBold,
-      };
-      if (newType === TEXT_STYLE.bold) {
-        newContent.isBold = true;
-      } else if (newType === TEXT_STYLE.marked) {
-        newContent.isMarked = true;
-      }
+      const newContent = generateNewContent(
+        targetContent,
+        newContentText,
+        newType
+      );
       blockContent.splice(contentIndex + 1, 0, newContent);
     } else if (
       selectionStart <= contentStart &&
-      selectionEnd >= contentStart &&
+      selectionEnd - 1 >= contentStart &&
       selectionEnd <= contentEnd
     ) {
       console.log("case 3");
-      const selectedText = targetContent.textContent.slice(
+      const newContentText = targetContent.textContent.slice(
         0,
         selectionEnd - contentStart
       );
       targetContent.textContent = targetContent.textContent.slice(
         selectionEnd - contentStart
       );
-      const newContent: blockContent = {
-        textContent: selectedText,
-        textType: TEXT_TYPE.normal,
-        isMarked: targetContent.isMarked,
-        isBold: targetContent.isBold,
-      };
-      if (newType === TEXT_STYLE.bold) {
-        newContent.isBold = true;
-      } else if (newType === TEXT_STYLE.marked) {
-        newContent.isMarked = true;
-      }
+      const newContent = generateNewContent(
+        targetContent,
+        newContentText,
+        newType
+      );
       blockContent.splice(contentIndex, 0, newContent);
     } else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
       console.log("case 4");
@@ -131,22 +144,17 @@ export class TextBlock extends EditorBlock {
         selectionStart - contentStart,
         selectionEnd - contentStart
       );
-      const newContent: blockContent = {
-        textContent: newContentText,
-        textType: TEXT_TYPE.normal,
-        isMarked: targetContent.isMarked,
-        isBold: targetContent.isBold,
-      };
-      if (newType === TEXT_STYLE.bold) {
-        newContent.isBold = true;
-      } else if (newType === TEXT_STYLE.marked) {
-        newContent.isMarked = true;
-      }
+      const newContent = generateNewContent(
+        targetContent,
+        newContentText,
+        newType
+      );
       const thirdContent: blockContent = {
         textContent: targetText.slice(selectionEnd - contentStart),
         textType: TEXT_TYPE.normal,
         isMarked: targetContent.isMarked,
         isBold: targetContent.isBold,
+        isUnderline: targetContent.isUnderline,
       };
       targetContent.textContent = targetContent.textContent.slice(
         0,
@@ -158,25 +166,58 @@ export class TextBlock extends EditorBlock {
     this.setContent(blockContent);
   }
 
-  markSelectedText(type: TEXT_STYLE, startIndex: number, endIndex: number) {
-    const currentContent = this.getContents();
-    let firstContent: blockContent;
-    let currentContentStart = 0;
-    let currentContentIndex = 0;
-    for (let i = 0; i < currentContent.length; i++) {
-      const currentContentEnd =
-        currentContentStart + currentContent[i].textContent.length;
-      if (
-        currentContentStart <= startIndex &&
-        startIndex <= currentContentEnd
-      ) {
-        firstContent = currentContent[i];
-        currentContentIndex = i;
-        break;
-      }
-      currentContentStart += currentContent[i].textContent.length;
+  getCopiedText(
+    contentIndex: number,
+    contentStart: number,
+    selectionStart: number,
+    selectionEnd: number
+  ): blockContent | undefined {
+    const blockContent = this.getContents();
+    const targetContent = blockContent[contentIndex];
+    const contentEnd =
+      contentStart + blockContent[contentIndex].textContent.length;
+    if (selectionStart <= contentStart && selectionEnd >= contentEnd) {
+      console.log("case 1");
+      return targetContent;
+    } else if (
+      contentStart <= selectionStart &&
+      contentEnd <= selectionEnd &&
+      contentEnd - 1 >= selectionStart
+    ) {
+      console.log("case 2");
+      const newContentText = targetContent.textContent.slice(
+        selectionStart - contentStart
+      );
+      return generateNewContent(targetContent, newContentText);
+    } else if (
+      selectionStart <= contentStart &&
+      selectionEnd - 1 >= contentStart &&
+      selectionEnd <= contentEnd
+    ) {
+      console.log("case 3");
+      const newContentText = targetContent.textContent.slice(
+        0,
+        selectionEnd - contentStart
+      );
+      return generateNewContent(targetContent, newContentText);
+    } else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
+      console.log("case 4");
+      const targetText = targetContent.textContent;
+      const newContentText = targetText.slice(
+        selectionStart - contentStart,
+        selectionEnd - contentStart
+      );
+      return generateNewContent(targetContent, newContentText);
     }
-    let leftBound = currentContentStart;
+  }
+
+  copySelectedText(startIndex: number, endIndex: number): blockContent[] {
+    const currentContent = this.getContents();
+    let {
+      firstContentStart: leftBound,
+      firstContentIndex: currentContentIndex,
+    } = findFirstContent(startIndex, currentContent);
+    const selectedTexts = [];
     while (
       currentContent[currentContentIndex] &&
       checkInSelection(
@@ -186,9 +227,37 @@ export class TextBlock extends EditorBlock {
         endIndex
       )
     ) {
-      const currentContentOriginLength = currentContent[currentContentIndex].textContent.length
-      const rightBound =
-        leftBound + currentContentOriginLength;
+      selectedTexts.push(
+        this.getCopiedText(currentContentIndex, leftBound, startIndex, endIndex)
+      );
+      leftBound += currentContent[currentContentIndex].textContent.length;
+      currentContentIndex++;
+    }
+    return selectedTexts;
+  }
+
+  markSelectedText(
+    type: TEXT_STYLE_ACTION,
+    startIndex: number,
+    endIndex: number
+  ) {
+    const currentContent = this.getContents();
+    let {
+      firstContentStart: leftBound,
+      firstContentIndex: currentContentIndex,
+    } = findFirstContent(startIndex, currentContent);
+    while (
+      currentContent[currentContentIndex] &&
+      checkInSelection(
+        leftBound,
+        leftBound + currentContent[currentContentIndex]?.textContent.length,
+        startIndex,
+        endIndex
+      )
+    ) {
+      const currentContentOriginLength =
+        currentContent[currentContentIndex].textContent.length;
+      const rightBound = leftBound + currentContentOriginLength;
       console.log("in while", currentContent[currentContentIndex]);
       this.makeBlockContent(
         currentContentIndex,
@@ -200,8 +269,7 @@ export class TextBlock extends EditorBlock {
       if (startIndex <= leftBound && rightBound <= endIndex) {
         console.log("+1 loader");
         currentContentIndex++;
-      }
-      else if (
+      } else if (
         leftBound <= startIndex &&
         rightBound <= endIndex &&
         rightBound >= startIndex
@@ -216,7 +284,25 @@ export class TextBlock extends EditorBlock {
         currentContentIndex++;
       }
       leftBound += currentContentOriginLength;
-      console.log('new leftbound', leftBound);
+      console.log("new leftbound", leftBound);
     }
+  }
+
+  insertBlockContents(newContents: blockContent[], index: number) {
+    const blockContents = this.getContents();
+    if (blockContents.length === 0) {
+      this.setContent(newContents);
+      return;
+    }
+    console.log(index);
+    const {firstContentIndex, firstContentStart} = findFirstContent(index, blockContents);
+    const targetContent = blockContents[firstContentIndex];
+    const targetContentText = targetContent.textContent;
+    const firstHalfText = targetContentText.slice(0, firstContentStart + 1 - index);
+    const firstHalfContent = generateNewContent(targetContent, firstHalfText);
+    const secondHalfText = targetContentText.slice(firstContentStart + 1 - index);
+    const secondHalfContent = generateNewContent(targetContent, secondHalfText);
+    blockContents.splice(firstContentIndex, 1, firstHalfContent, ...newContents, secondHalfContent);
+    this.setContent(blockContents);
   }
 }
