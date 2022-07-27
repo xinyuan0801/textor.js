@@ -51,22 +51,24 @@ function generateNewContent(parentContent: blockContent, newText: string, newTyp
   return newContent;
 }
 
-function findFirstContent(startIndex: number, blockContents: blockContent[]): IFirstContentInfo {
+function findFirstContent(startIndex: number, blockContents: blockContent[], isInsert?: boolean): IFirstContentInfo {
   let firstContentStart = 0;
   let firstContentIndex = 0;
+  const flag = isInsert ? 0 : 1;
   for (let i = 0; i < blockContents.length; i++) {
     const currentContentEnd =
         firstContentStart + blockContents[i].textContent.length;
     if (
         firstContentStart <= startIndex &&
-        startIndex <= currentContentEnd - 1
+        startIndex <= currentContentEnd - flag
     ) {
+      console.log("founded");
       firstContentIndex = i;
-      break;
+      return {firstContentIndex, firstContentStart};
     }
     firstContentStart += blockContents[i].textContent.length;
   }
-  return {firstContentIndex, firstContentStart};
+  return {firstContentIndex: -1, firstContentStart: -1};
 }
 
 function safeJSONParse(JSONString: string) {

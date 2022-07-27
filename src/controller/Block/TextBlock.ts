@@ -289,20 +289,37 @@ export class TextBlock extends EditorBlock {
   }
 
   insertBlockContents(newContents: blockContent[], index: number) {
+    console.log(index);
     const blockContents = this.getContents();
     if (blockContents.length === 0) {
       this.setContent(newContents);
       return;
     }
-    console.log(index);
-    const {firstContentIndex, firstContentStart} = findFirstContent(index, blockContents);
+    const { firstContentIndex, firstContentStart } = findFirstContent(
+      index,
+      blockContents,
+      true
+    );
+    if (firstContentIndex === -1) {
+      this.setContent([...blockContents, ...newContents]);
+      return;
+    }
+    console.log(blockContents[firstContentIndex]);
     const targetContent = blockContents[firstContentIndex];
     const targetContentText = targetContent.textContent;
-    const firstHalfText = targetContentText.slice(0, firstContentStart + 1 - index);
+    const firstHalfText = targetContentText.slice(0, index - firstContentStart);
     const firstHalfContent = generateNewContent(targetContent, firstHalfText);
-    const secondHalfText = targetContentText.slice(firstContentStart + 1 - index);
+    const secondHalfText = targetContentText.slice(index - firstContentStart);
     const secondHalfContent = generateNewContent(targetContent, secondHalfText);
-    blockContents.splice(firstContentIndex, 1, firstHalfContent, ...newContents, secondHalfContent);
+    const newContentsArray: blockContent[] = [];
+    if (firstHalfText.length > 0) {
+      newContentsArray.push(firstHalfContent);
+    }
+    newContentsArray.push(...newContents);
+    if (secondHalfText.length > 0) {
+      newContentsArray.push(secondHalfContent);
+    }
+    blockContents.splice(firstContentIndex, 1, ...newContentsArray);
     this.setContent(blockContents);
   }
 }

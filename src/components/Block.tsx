@@ -1,17 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import "../style/Block.css";
-import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
+import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import { CursorPos } from "../controller/Cursor/ICursorManager";
-import {
-  blockContent,
-  TEXT_STYLE_ACTION,
-  TEXT_TYPE,
-} from "../controller/Block/IEditorBlock";
-import { EditorBlock } from "../controller/Block/EditorBlock";
-import { EditorContainer } from "../controller/Container/EditorContainer";
-import { TextBlock } from "../controller/Block/TextBlock";
-import { ISelectedBlock } from "../controller/Container/IEditorContainer";
+import {CursorPos} from "../controller/Cursor/ICursorManager";
+import {blockContent, TEXT_TYPE,} from "../controller/Block/IEditorBlock";
+import {EditorBlock} from "../controller/Block/EditorBlock";
+import {EditorContainer} from "../controller/Container/EditorContainer";
+import {TextBlock} from "../controller/Block/TextBlock";
+import {ISelectedBlock} from "../controller/Container/IEditorContainer";
 import {safeJSONParse} from "../controller/Block/utils";
 
 const Block = React.memo((props) => {
@@ -166,30 +162,36 @@ const Block = React.memo((props) => {
   };
 
   const handleCopy = (e: React.ClipboardEvent) => {
-    e.preventDefault();
+    console.log(e);
+    const plainText = window.getSelection().toString();
+    console.log(plainText);
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
     const copiedContent = (blockInfo as TextBlock).copySelectedText(caretPos.start, caretPos.end);
     const copyTextInfo = {textContent: copiedContent, key: "lovetiktok"};
     const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
-    console.log(JSON.stringify(copyTextInfo));
-    console.log(navigator);
-    navigator.clipboard.writeText(copyTextInfoJsonString).then(() => {
-      console.info("copy event complete");
-    }, (e) => {
-      console.error(e);
-    });
+    containerInfo.setClipboardInfo({plainText, textContext: copyTextInfoJsonString});
   }
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    const plainData = e.clipboardData.getData("text/plain");
-    const pasteContent = safeJSONParse(plainData);
-    if (pasteContent && pasteContent.key === "lovetiktok") {
-      (blockInfo as TextBlock).insertBlockContents(pasteContent.textContent, caretPos.start);
-      blockInfo.setKey(Date.now());
-      syncState(containerInfo.getBlocks());
-      console.log(pasteContent);
+    const plainText = e.clipboardData.getData("Text");
+    const containerClipboard = containerInfo.getClipboardInfo();
+    console.log(plainText, containerClipboard?.plainText);
+    if (plainText === containerClipboard?.plainText) {
+      console.log("in if");
+      e.preventDefault();
+      const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+      const contentText = containerClipboard.textContext;
+      const pasteContent = safeJSONParse(contentText);
+      if (pasteContent && pasteContent.key === "lovetiktok") {
+        (blockInfo as TextBlock).insertBlockContents(pasteContent.textContent, caretPos.start);
+        blockInfo.setKey(Date.now());
+        syncState(containerInfo.getBlocks());
+      } else {
+        const newPlainContent: blockContent[] = [{textContent: contentText, textType: TEXT_TYPE.normal}];
+        (blockInfo as TextBlock).insertBlockContents(newPlainContent, caretPos.start);
+        blockInfo.setKey(Date.now());
+        syncState(containerInfo.getBlocks());
+      }
     }
   }
 

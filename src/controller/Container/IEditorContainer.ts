@@ -4,4 +4,9 @@ interface ISelectedBlock {
   selectionEnd: number;
 }
 
-export { ISelectedBlock };
+interface IClipboardInfo {
+  plainText: string;
+  textContext: string;
+}
+
+export { ISelectedBlock, IClipboardInfo };

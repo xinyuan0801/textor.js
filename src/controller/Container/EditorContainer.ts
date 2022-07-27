@@ -1,11 +1,12 @@
 import { EditorBlock } from "../Block/EditorBlock";
 import { TextBlock } from "../Block/TextBlock";
 import { CursorPos } from "../Cursor/ICursorManager";
-import {ISelectedBlock} from "./IEditorContainer";
+import {IClipboardInfo, ISelectedBlock} from "./IEditorContainer";
 
 export class EditorContainer {
   blocks: EditorBlock[];
   currentSelectedBlock: ISelectedBlock;
+  clipboardInfo: IClipboardInfo;
 
   constructor(initialBlock: EditorBlock[] = []) {
     this.blocks = initialBlock;
@@ -67,5 +68,13 @@ export class EditorContainer {
 
   getCurrentSelectedBlock(): ISelectedBlock {
     return this.currentSelectedBlock;
+  }
+
+  setClipboardInfo(newClipboardInfo: IClipboardInfo): void {
+    this.clipboardInfo = newClipboardInfo;
+  }
+
+  getClipboardInfo(): IClipboardInfo {
+    return this.clipboardInfo;
   }
 }
