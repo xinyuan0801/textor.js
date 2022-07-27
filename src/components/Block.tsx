@@ -41,7 +41,7 @@ const Block = React.memo((props) => {
     blockInfo.sync(e);
   };
 
-  const debounceSave = debounce(savingBlockContent, 1);
+  const debounceSave = debounce(savingBlockContent, 0);
 
   const collectRef = (el) => {
     if (el) {
