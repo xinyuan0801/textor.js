@@ -53,7 +53,6 @@ export class EditorContainer {
   }
 
   setFocusByIndex(index: number, position: CursorPos): void {
-    console.log(this.blocks[index]);
     this.blocks[index].setFocused(position);
   }
 

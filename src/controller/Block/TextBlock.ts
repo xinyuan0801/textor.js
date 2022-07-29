@@ -4,14 +4,24 @@ import { setCursorPos } from "../Cursor/CursorManager";
 import { CursorPos } from "../Cursor/ICursorManager";
 import { blockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./IEditorBlock";
 import {
+  blockContentDeepClone,
   checkInSelection,
   findFirstContent,
   generateNewContent,
 } from "./utils";
+import { LinkedList } from "../../utils/LinkedList/LinkedList";
+import { LinkedListNode } from "../../utils/LinkedList/LinkedListNode";
 
 export class TextBlock extends EditorBlock {
-  constructor(key, type, blockContents, ref?) {
-    super(key, type, blockContents, ref);
+  history: LinkedList<blockContent[]>;
+  historyPtr: number;
+  currentEra: LinkedListNode<blockContent[]>;
+
+  constructor(key, type, blockContents) {
+    super(key, type, blockContents);
+    this.history = new LinkedList<blockContent[]>(blockContents);
+    this.currentEra = this.history.head.next;
+    this.historyPtr = 0;
   }
 
   setFocused(position: CursorPos): void {
@@ -72,6 +82,50 @@ export class TextBlock extends EditorBlock {
     this.blockContents = newRenderBlockContent;
   }
 
+  recordHistory() {
+    console.log(this.history);
+    if (this.historyPtr !== this.history.length - 1) {
+      const newEraNode = new LinkedListNode(
+        blockContentDeepClone(this.getContents())
+      );
+      console.log(
+        "new route",
+        blockContentDeepClone(this.currentEra.val),
+        blockContentDeepClone(this.getContents())
+      );
+      this.currentEra.next = newEraNode;
+      newEraNode.prev = this.currentEra;
+      newEraNode.next = this.history.tail;
+      this.history.tail.prev = newEraNode;
+      this.currentEra = newEraNode;
+    } else {
+      this.history.append(blockContentDeepClone(this.getContents()));
+      this.currentEra = this.currentEra.next;
+    }
+    this.historyPtr++;
+    console.log("current era", this.currentEra);
+  }
+
+  undoHistory() {
+    if (this.historyPtr === 0) {
+      return;
+    }
+    this.historyPtr--;
+    this.currentEra = this.currentEra.prev;
+    this.setContent(blockContentDeepClone(this.currentEra.val));
+    console.log("current era", this.currentEra);
+  }
+
+  redoHistory() {
+    if (this.historyPtr === this.history.length - 1) {
+      return;
+    }
+    this.historyPtr++;
+    this.currentEra = this.currentEra.next;
+    this.setContent(blockContentDeepClone(this.currentEra.val));
+    console.log("current era", this.currentEra);
+  }
+
   makeBlockContent(
     contentIndex: number,
     contentStart: number,
@@ -84,7 +138,6 @@ export class TextBlock extends EditorBlock {
     const contentEnd =
       contentStart + blockContent[contentIndex].textContent.length;
     if (selectionStart <= contentStart && selectionEnd >= contentEnd) {
-      console.log("case 1");
       if (newType === TEXT_STYLE_ACTION.bold) {
         targetContent.isBold = true;
       } else if (newType === TEXT_STYLE_ACTION.marked) {
@@ -103,11 +156,9 @@ export class TextBlock extends EditorBlock {
       contentEnd <= selectionEnd &&
       contentEnd - 1 >= selectionStart
     ) {
-      console.log("case 2");
       const newContentText = targetContent.textContent.slice(
         selectionStart - contentStart
       );
-      console.log(newContentText, contentStart, selectionStart);
       targetContent.textContent = targetContent.textContent.slice(
         0,
         selectionStart - contentStart
@@ -123,7 +174,6 @@ export class TextBlock extends EditorBlock {
       selectionEnd - 1 >= contentStart &&
       selectionEnd <= contentEnd
     ) {
-      console.log("case 3");
       const newContentText = targetContent.textContent.slice(
         0,
         selectionEnd - contentStart
@@ -138,7 +188,6 @@ export class TextBlock extends EditorBlock {
       );
       blockContent.splice(contentIndex, 0, newContent);
     } else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
-      console.log("case 4");
       const targetText = targetContent.textContent;
       const newContentText = targetText.slice(
         selectionStart - contentStart,
@@ -160,7 +209,6 @@ export class TextBlock extends EditorBlock {
         0,
         selectionStart - contentStart
       );
-      console.log(thirdContent);
       blockContent.splice(contentIndex + 1, 0, newContent, thirdContent);
     }
     this.setContent(blockContent);
@@ -258,7 +306,6 @@ export class TextBlock extends EditorBlock {
       const currentContentOriginLength =
         currentContent[currentContentIndex].textContent.length;
       const rightBound = leftBound + currentContentOriginLength;
-      console.log("in while", currentContent[currentContentIndex]);
       this.makeBlockContent(
         currentContentIndex,
         leftBound,
@@ -284,12 +331,11 @@ export class TextBlock extends EditorBlock {
         currentContentIndex++;
       }
       leftBound += currentContentOriginLength;
-      console.log("new leftbound", leftBound);
     }
+    this.recordHistory();
   }
 
   insertBlockContents(newContents: blockContent[], index: number) {
-    console.log(index);
     const blockContents = this.getContents();
     if (blockContents.length === 0) {
       this.setContent(newContents);
@@ -304,7 +350,6 @@ export class TextBlock extends EditorBlock {
       this.setContent([...blockContents, ...newContents]);
       return;
     }
-    console.log(blockContents[firstContentIndex]);
     const targetContent = blockContents[firstContentIndex];
     const targetContentText = targetContent.textContent;
     const firstHalfText = targetContentText.slice(0, index - firstContentStart);

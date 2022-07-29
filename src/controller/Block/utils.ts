@@ -11,7 +11,6 @@ function checkInSelection(
   selectionStart: number,
   selectionEnd: number
 ) {
-  console.log(contentStart, contentEnd, selectionStart, selectionEnd);
   return (
     (contentStart <= selectionStart &&
       contentEnd <= selectionEnd &&
@@ -62,7 +61,6 @@ function findFirstContent(startIndex: number, blockContents: blockContent[], isI
         firstContentStart <= startIndex &&
         startIndex <= currentContentEnd - flag
     ) {
-      console.log("founded");
       firstContentIndex = i;
       return {firstContentIndex, firstContentStart};
     }
@@ -80,4 +78,8 @@ function safeJSONParse(JSONString: string) {
   }
 }
 
-export { checkInSelection, generateNewContent, findFirstContent, safeJSONParse };
+function blockContentDeepClone(blockContents: blockContent[]) {
+  return safeJSONParse(JSON.stringify(blockContents));
+}
+
+export { checkInSelection, generateNewContent, findFirstContent, safeJSONParse, blockContentDeepClone };

@@ -16,7 +16,6 @@ function Container() {
 
   const syncBlockState = useCallback((newBlockArrayState) => {
     setBlockArray(newBlockArrayState.slice());
-    console.log("container update", newBlockArrayState.slice());
   }, []);
 
   const handleClickContainer = () => {
@@ -44,7 +43,6 @@ function Container() {
           selectedInfo.selectionEnd
         );
         targetBlock.setKey(Date.now());
-        console.log("container", containerInstance.current.getBlocks());
         syncBlockState(containerInstance.current.getBlocks());
       }
     }

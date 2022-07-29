@@ -45,7 +45,6 @@ abstract class EditorBlock {
   }
 
   setContent(blockContents: blockContent[]): void {
-    console.log("new content", blockContents.slice());
     this.blockContents = blockContents;
   }
 
@@ -54,7 +53,6 @@ abstract class EditorBlock {
   }
 
   setKey(newKey: number) {
-    console.log("changing key", this.key, newKey);
     this.key = newKey;
   }
 

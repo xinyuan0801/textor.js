@@ -1,14 +1,14 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import "../style/Block.css";
-import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
+import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import {CursorPos} from "../controller/Cursor/ICursorManager";
-import {blockContent, TEXT_TYPE,} from "../controller/Block/IEditorBlock";
-import {EditorBlock} from "../controller/Block/EditorBlock";
-import {EditorContainer} from "../controller/Container/EditorContainer";
-import {TextBlock} from "../controller/Block/TextBlock";
-import {ISelectedBlock} from "../controller/Container/IEditorContainer";
-import {safeJSONParse} from "../controller/Block/utils";
+import { CursorPos } from "../controller/Cursor/ICursorManager";
+import { blockContent, TEXT_TYPE } from "../controller/Block/IEditorBlock";
+import { EditorBlock } from "../controller/Block/EditorBlock";
+import { EditorContainer } from "../controller/Container/EditorContainer";
+import { TextBlock } from "../controller/Block/TextBlock";
+import { ISelectedBlock } from "../controller/Container/IEditorContainer";
+import { safeJSONParse } from "../controller/Block/utils";
 
 const Block = React.memo((props) => {
   const {
@@ -30,15 +30,22 @@ const Block = React.memo((props) => {
     blockInfo.setContentSetter(setBlockContents);
   }, []);
 
-  useEffect(() => {
-    console.log("rerendering", blockInfo.getKey());
-  });
+  useEffect(() => {});
 
   const savingBlockContent = (e) => {
     blockInfo.sync(e);
+    console.log(
+      "saving",
+      blockInfo.getContents(),
+      (blockInfo as TextBlock).history
+    );
   };
 
   const debounceSave = debounce(savingBlockContent, 0);
+  const debounceRecordHistory = debounce(
+    (blockInfo as TextBlock).recordHistory.bind(blockInfo),
+    500
+  );
 
   const collectRef = (el) => {
     if (el) {
@@ -109,9 +116,22 @@ const Block = React.memo((props) => {
           containerInfo.setFocusByIndex(selfIndex - 1, CursorPos.end);
         }
       }
-    } else {
-      debounceSave(blockInfo.ref);
+    } else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
+      e.preventDefault();
+      (blockInfo as TextBlock).redoHistory();
+      blockInfo.setKey(Date.now());
+      syncState(containerInfo.getBlocks());
+    } else if (e.code === "KeyZ" && e.metaKey) {
+      e.preventDefault();
+      (blockInfo as TextBlock).undoHistory();
+      blockInfo.setKey(Date.now());
+      syncState(containerInfo.getBlocks());
     }
+  };
+
+  const handleOnInput = () => {
+    savingBlockContent(blockInfo.ref);
+    debounceRecordHistory();
   };
 
   const parseBlockContent = (
@@ -120,6 +140,11 @@ const Block = React.memo((props) => {
   ): HTMLElement | string => {
     if (content.textType === TEXT_TYPE.normal) {
       let baseElement = content.textContent;
+      baseElement = content.isUnderline ? (
+        <u key={Date.now() * Math.random() + "underline"}>{baseElement}</u>
+      ) : (
+        baseElement
+      );
       baseElement = content.isBold ? (
         <b key={Date.now() * Math.random() + "bold"}>{baseElement}</b>
       ) : (
@@ -127,11 +152,6 @@ const Block = React.memo((props) => {
       );
       baseElement = content.isMarked ? (
         <mark key={Date.now() * Math.random() + "marked"}>{baseElement}</mark>
-      ) : (
-        baseElement
-      );
-      baseElement = content.isUnderline ? (
-        <u key={Date.now() * Math.random() + "underline"}>{baseElement}</u>
       ) : (
         baseElement
       );
@@ -162,38 +182,49 @@ const Block = React.memo((props) => {
   };
 
   const handleCopy = (e: React.ClipboardEvent) => {
-    console.log(e);
     const plainText = window.getSelection().toString();
-    console.log(plainText);
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    const copiedContent = (blockInfo as TextBlock).copySelectedText(caretPos.start, caretPos.end);
-    const copyTextInfo = {textContent: copiedContent, key: "lovetiktok"};
+    const copiedContent = (blockInfo as TextBlock).copySelectedText(
+      caretPos.start,
+      caretPos.end
+    );
+    const copyTextInfo = { textContent: copiedContent, key: "lovetiktok" };
     const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
-    containerInfo.setClipboardInfo({plainText, textContext: copyTextInfoJsonString});
-  }
+    containerInfo.setClipboardInfo({
+      plainText,
+      textContext: copyTextInfoJsonString,
+    });
+  };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     const plainText = e.clipboardData.getData("Text");
     const containerClipboard = containerInfo.getClipboardInfo();
-    console.log(plainText, containerClipboard?.plainText);
     if (plainText === containerClipboard?.plainText) {
-      console.log("in if");
       e.preventDefault();
       const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
       const contentText = containerClipboard.textContext;
       const pasteContent = safeJSONParse(contentText);
       if (pasteContent && pasteContent.key === "lovetiktok") {
-        (blockInfo as TextBlock).insertBlockContents(pasteContent.textContent, caretPos.start);
+        (blockInfo as TextBlock).insertBlockContents(
+          pasteContent.textContent,
+          caretPos.start
+        );
         blockInfo.setKey(Date.now());
         syncState(containerInfo.getBlocks());
       } else {
-        const newPlainContent: blockContent[] = [{textContent: contentText, textType: TEXT_TYPE.normal}];
-        (blockInfo as TextBlock).insertBlockContents(newPlainContent, caretPos.start);
+        const newPlainContent: blockContent[] = [
+          { textContent: contentText, textType: TEXT_TYPE.normal },
+        ];
+        (blockInfo as TextBlock).insertBlockContents(
+          newPlainContent,
+          caretPos.start
+        );
         blockInfo.setKey(Date.now());
         syncState(containerInfo.getBlocks());
       }
     }
-  }
+    (blockInfo as TextBlock).recordHistory();
+  };
 
   return (
     <div
@@ -204,6 +235,7 @@ const Block = React.memo((props) => {
       onMouseUp={handleTextSelection}
       onPaste={handlePaste}
       onCopy={handleCopy}
+      onInput={handleOnInput}
       suppressContentEditableWarning={true}
       ref={(el) => collectRef(el)}
     >
