@@ -1,25 +1,31 @@
-import { EditorBlock } from "./EditorBlock";
-import { normalTextConverter } from "../Cursor/utilts";
-import { setCursorPos } from "../Cursor/CursorManager";
-import { CursorPos } from "../Cursor/ICursorManager";
-import { blockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./IEditorBlock";
+import { EditorBlock } from "../EditorBlock/EditorBlock";
+import { normalTextConverter } from "../../Cursor/utilts";
+import { setCursorPos } from "../../Cursor/CursorManager";
+import { CursorPos } from "../../Cursor/ICursorManager";
+import {
+  ITextBlock,
+  ITextBlockContent,
+  TEXT_STYLE_ACTION,
+  TEXT_TYPE,
+} from "./ITextBlock";
 import {
   blockContentDeepClone,
   checkInSelection,
   findFirstContent,
   generateNewContent,
-} from "./utils";
-import { LinkedList } from "../../utils/LinkedList/LinkedList";
-import { LinkedListNode } from "../../utils/LinkedList/LinkedListNode";
+} from "../utils";
+import { LinkedList } from "../../../utils/LinkedList/LinkedList";
+import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
+import { IEditorBlock } from "../EditorBlock/IEditorBlock";
 
-export class TextBlock extends EditorBlock {
-  history: LinkedList<blockContent[]>;
+export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
+  history: LinkedList<ITextBlockContent[]>;
   historyPtr: number;
-  currentEra: LinkedListNode<blockContent[]>;
+  currentEra: LinkedListNode<ITextBlockContent[]>;
 
   constructor(key, type, blockContents) {
     super(key, type, blockContents);
-    this.history = new LinkedList<blockContent[]>(blockContents);
+    this.history = new LinkedList<ITextBlockContent[]>(blockContents);
     this.currentEra = this.history.head.next;
     this.historyPtr = 0;
   }
@@ -28,8 +34,16 @@ export class TextBlock extends EditorBlock {
     setCursorPos(this.ref, position);
   }
 
+  getTotalContentLength(): number {
+    let totalLength = 0;
+    this.blockContents.forEach((blockContent) => {
+      totalLength = totalLength + blockContent.textContent.length;
+    });
+    return totalLength;
+  }
+
   sync(currentContent: HTMLElement): void {
-    const newRenderBlockContent: blockContent[] = [];
+    const newRenderBlockContent: ITextBlockContent[] = [];
     const childNodes = currentContent.childNodes;
     childNodes.forEach((child) => {
       if (child.nodeName === "#text") {
@@ -82,7 +96,7 @@ export class TextBlock extends EditorBlock {
     this.blockContents = newRenderBlockContent;
   }
 
-  recordHistory() {
+  recordHistory(): void {
     console.log(this.history);
     if (this.historyPtr !== this.history.length - 1) {
       const newEraNode = new LinkedListNode(
@@ -106,7 +120,7 @@ export class TextBlock extends EditorBlock {
     console.log("current era", this.currentEra);
   }
 
-  undoHistory() {
+  undoHistory(): void {
     if (this.historyPtr === 0) {
       return;
     }
@@ -116,7 +130,7 @@ export class TextBlock extends EditorBlock {
     console.log("current era", this.currentEra);
   }
 
-  redoHistory() {
+  redoHistory(): void {
     if (this.historyPtr === this.history.length - 1) {
       return;
     }
@@ -132,7 +146,7 @@ export class TextBlock extends EditorBlock {
     selectionStart: number,
     selectionEnd: number,
     newType: TEXT_STYLE_ACTION
-  ) {
+  ): void {
     const blockContent = this.getContents();
     const targetContent = blockContent[contentIndex];
     const contentEnd =
@@ -198,7 +212,7 @@ export class TextBlock extends EditorBlock {
         newContentText,
         newType
       );
-      const thirdContent: blockContent = {
+      const thirdContent: ITextBlockContent = {
         textContent: targetText.slice(selectionEnd - contentStart),
         textType: TEXT_TYPE.normal,
         isMarked: targetContent.isMarked,
@@ -219,7 +233,7 @@ export class TextBlock extends EditorBlock {
     contentStart: number,
     selectionStart: number,
     selectionEnd: number
-  ): blockContent | undefined {
+  ): ITextBlockContent | undefined {
     const blockContent = this.getContents();
     const targetContent = blockContent[contentIndex];
     const contentEnd =
@@ -259,7 +273,7 @@ export class TextBlock extends EditorBlock {
     }
   }
 
-  copySelectedText(startIndex: number, endIndex: number): blockContent[] {
+  copySelectedText(startIndex: number, endIndex: number): ITextBlockContent[] {
     const currentContent = this.getContents();
     let {
       firstContentStart: leftBound,
@@ -288,7 +302,7 @@ export class TextBlock extends EditorBlock {
     type: TEXT_STYLE_ACTION,
     startIndex: number,
     endIndex: number
-  ) {
+  ): void {
     const currentContent = this.getContents();
     let {
       firstContentStart: leftBound,
@@ -335,7 +349,7 @@ export class TextBlock extends EditorBlock {
     this.recordHistory();
   }
 
-  insertBlockContents(newContents: blockContent[], index: number) {
+  insertBlockContents(newContents: ITextBlockContent[], index: number): void {
     const blockContents = this.getContents();
     if (blockContents.length === 0) {
       this.setContent(newContents);
@@ -356,7 +370,7 @@ export class TextBlock extends EditorBlock {
     const firstHalfContent = generateNewContent(targetContent, firstHalfText);
     const secondHalfText = targetContentText.slice(index - firstContentStart);
     const secondHalfContent = generateNewContent(targetContent, secondHalfText);
-    const newContentsArray: blockContent[] = [];
+    const newContentsArray: ITextBlockContent[] = [];
     if (firstHalfText.length > 0) {
       newContentsArray.push(firstHalfContent);
     }

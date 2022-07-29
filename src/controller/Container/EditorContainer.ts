@@ -1,5 +1,5 @@
-import { EditorBlock } from "../Block/EditorBlock";
-import { TextBlock } from "../Block/TextBlock";
+import { EditorBlock } from "../Block/EditorBlock/EditorBlock";
+import { TextBlock } from "../Block/TextBlock/TextBlock";
 import { CursorPos } from "../Cursor/ICursorManager";
 import {IClipboardInfo, ISelectedBlock} from "./IEditorContainer";
 

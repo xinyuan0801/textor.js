@@ -1,17 +1,17 @@
-import { CursorPos } from "../Cursor/ICursorManager";
-import type { blockContent } from "./IEditorBlock";
+import { CursorPos } from "../../Cursor/ICursorManager";
+import { IEditorBlock } from "./IEditorBlock";
+import {ITextBlockContent} from "../TextBlock/ITextBlock";
 
-abstract class EditorBlock {
+abstract class EditorBlock implements IEditorBlock {
   key: number;
   type: string;
-  blockContents: blockContent[];
-  contentSetter: any;
+  blockContents: ITextBlockContent[];
   ref: HTMLElement;
 
   protected constructor(
     key: number,
     type: string,
-    blockContents: blockContent[],
+    blockContents: ITextBlockContent[],
     ref?: HTMLElement
   ) {
     this.key = key;
@@ -28,23 +28,15 @@ abstract class EditorBlock {
     return this.ref;
   }
 
-  getTotalSum(): number {
-    let cnt = 0;
-    this.blockContents.forEach((blockContent) => {
-      cnt = cnt + blockContent.textContent.length;
-    });
-    return cnt;
-  }
-
   setRef(blockRef: HTMLElement): void {
     this.ref = blockRef;
   }
 
-  getContents(): blockContent[] {
+  getContents(): ITextBlockContent[] {
     return this.blockContents;
   }
 
-  setContent(blockContents: blockContent[]): void {
+  setContent(blockContents: ITextBlockContent[]): void {
     this.blockContents = blockContents;
   }
 
@@ -58,14 +50,6 @@ abstract class EditorBlock {
 
   getType(): string {
     return this.type;
-  }
-
-  setContentSetter(contentSetter: any) {
-    this.contentSetter = contentSetter;
-  }
-
-  renderContent() {
-    this.contentSetter(this.blockContents);
   }
 }
 

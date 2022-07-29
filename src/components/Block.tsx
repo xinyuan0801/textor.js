@@ -3,12 +3,13 @@ import "../style/Block.css";
 import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
 import { CursorPos } from "../controller/Cursor/ICursorManager";
-import { blockContent, TEXT_TYPE } from "../controller/Block/IEditorBlock";
-import { EditorBlock } from "../controller/Block/EditorBlock";
+import { ITextBlockContent, TEXT_TYPE } from "../controller/Block/TextBlock/ITextBlock";
+import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
 import { EditorContainer } from "../controller/Container/EditorContainer";
-import { TextBlock } from "../controller/Block/TextBlock";
+import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
 import { ISelectedBlock } from "../controller/Container/IEditorContainer";
 import { safeJSONParse } from "../controller/Block/utils";
+import { IEditorBlock } from "../controller/Block/EditorBlock/IEditorBlock";
 
 const Block = React.memo((props) => {
   const {
@@ -18,16 +19,15 @@ const Block = React.memo((props) => {
   }: {
     blockInfo: EditorBlock;
     containerInfo: EditorContainer;
-    syncState: any;
+    syncState: (HTMLElement) => void;
   } = props;
-  const [blockContents, setBlockContents]: [
-    blockContents: blockContent[],
+  const [blockContents]: [
+    blockContents: ITextBlockContent[],
     setBlockContents: any
-  ] = useState<blockContent[]>(blockInfo.getContents());
+  ] = useState<ITextBlockContent[]>(blockInfo.getContents());
 
   useEffect(() => {
     blockInfo.setFocused(CursorPos.end);
-    blockInfo.setContentSetter(setBlockContents);
   }, []);
 
   useEffect(() => {});
@@ -41,7 +41,8 @@ const Block = React.memo((props) => {
     );
   };
 
-  const debounceSave = debounce(savingBlockContent, 0);
+  const debounceSave = debounce(savingBlockContent, 1000);
+
   const debounceRecordHistory = debounce(
     (blockInfo as TextBlock).recordHistory.bind(blockInfo),
     500
@@ -60,6 +61,7 @@ const Block = React.memo((props) => {
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === "Enter") {
       e.preventDefault();
+      savingBlockContent(blockInfo.ref);
       const targetIndex: number = containerInfo.getBlockIndex(
         blockInfo.getKey()
       );
@@ -67,6 +69,7 @@ const Block = React.memo((props) => {
       syncState(containerInfo.getBlocks());
     } else if (e.code === "Backspace" && blockInfo.ref.innerHTML === "") {
       e.preventDefault();
+      savingBlockContent(blockInfo.ref);
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       const nextFocusedBlockIndex =
         selfIndex === 0 ? selfIndex + 1 : selfIndex - 1;
@@ -80,6 +83,7 @@ const Block = React.memo((props) => {
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       if (caretPos.start === 0 && selfIndex !== 0) {
         e.preventDefault();
+        savingBlockContent(blockInfo.ref);
         const prevBlock = containerInfo.getBlocks()[selfIndex - 1];
         if (prevBlock.ref.innerHTML === "") {
           containerInfo.deleteBlock(prevBlock.getKey());
@@ -96,10 +100,9 @@ const Block = React.memo((props) => {
         }
         syncState(containerInfo.getBlocks());
       }
-      debounceSave(blockInfo.ref);
     } else if (e.code === "ArrowDown") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
-      const contentLength = blockInfo.getTotalSum();
+      const contentLength = (blockInfo as TextBlock).getTotalContentLength();
       if (caretPos.end === contentLength) {
         e.preventDefault();
         const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
@@ -118,11 +121,13 @@ const Block = React.memo((props) => {
       }
     } else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
       e.preventDefault();
+      savingBlockContent(blockInfo.ref);
       (blockInfo as TextBlock).redoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
     } else if (e.code === "KeyZ" && e.metaKey) {
       e.preventDefault();
+      savingBlockContent(blockInfo.ref);
       (blockInfo as TextBlock).undoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
@@ -130,12 +135,12 @@ const Block = React.memo((props) => {
   };
 
   const handleOnInput = () => {
-    savingBlockContent(blockInfo.ref);
+    debounceSave(blockInfo.ref);
     debounceRecordHistory();
   };
 
   const parseBlockContent = (
-    content: blockContent,
+    content: ITextBlockContent,
     index: number
   ): HTMLElement | string => {
     if (content.textType === TEXT_TYPE.normal) {
@@ -212,7 +217,7 @@ const Block = React.memo((props) => {
         blockInfo.setKey(Date.now());
         syncState(containerInfo.getBlocks());
       } else {
-        const newPlainContent: blockContent[] = [
+        const newPlainContent: ITextBlockContent[] = [
           { textContent: contentText, textType: TEXT_TYPE.normal },
         ];
         (blockInfo as TextBlock).insertBlockContents(

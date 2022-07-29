@@ -1,4 +1,4 @@
-import { blockContent } from "../Block/IEditorBlock";
+import { ITextBlockContent } from "../Block/TextBlock/ITextBlock";
 
 interface ICursorPosition {
   start: number;
@@ -18,7 +18,7 @@ export const normalTextConverter = (textContent: string): string => {
   );
 };
 
-export const getSelectionRange = (blockContents: blockContent[], blockRef) => {
+export const getSelectionRange = (blockContents: ITextBlockContent[], blockRef) => {
   const selectionObject = window.getSelection();
   const selectionLength = selectionObject.toString().length;
   const targetNode = selectionObject.anchorNode.parentNode;

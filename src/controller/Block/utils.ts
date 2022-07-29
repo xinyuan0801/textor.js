@@ -1,4 +1,4 @@
-import {blockContent, TEXT_STYLE_ACTION, TEXT_TYPE} from "./IEditorBlock";
+import {ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE} from "./TextBlock/ITextBlock";
 
 interface IFirstContentInfo {
   firstContentIndex: number,
@@ -23,8 +23,8 @@ function checkInSelection(
   );
 }
 
-function generateNewContent(parentContent: blockContent, newText: string, newType?: TEXT_STYLE_ACTION) {
-  const newContent: blockContent = {
+function generateNewContent(parentContent: ITextBlockContent, newText: string, newType?: TEXT_STYLE_ACTION) {
+  const newContent: ITextBlockContent = {
     textContent: newText,
     textType: TEXT_TYPE.normal,
     isMarked: parentContent.isMarked,
@@ -50,7 +50,7 @@ function generateNewContent(parentContent: blockContent, newText: string, newTyp
   return newContent;
 }
 
-function findFirstContent(startIndex: number, blockContents: blockContent[], isInsert?: boolean): IFirstContentInfo {
+function findFirstContent(startIndex: number, blockContents: ITextBlockContent[], isInsert?: boolean): IFirstContentInfo {
   let firstContentStart = 0;
   let firstContentIndex = 0;
   const flag = isInsert ? 0 : 1;
@@ -78,7 +78,7 @@ function safeJSONParse(JSONString: string) {
   }
 }
 
-function blockContentDeepClone(blockContents: blockContent[]) {
+function blockContentDeepClone(blockContents: ITextBlockContent[]) {
   return safeJSONParse(JSON.stringify(blockContents));
 }
 

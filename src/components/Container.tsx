@@ -1,12 +1,12 @@
 import React, { useCallback, useState } from "react";
 
 import { Block } from "./Block";
-import { TextBlock } from "../controller/Block/TextBlock";
+import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
 
 import "../style/container.css";
 import { useGenerateContainer } from "./ContainerHooks";
-import { EditorBlock } from "../controller/Block/EditorBlock";
-import { TEXT_STYLE_ACTION, TEXT_TYPE } from "../controller/Block/IEditorBlock";
+import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
+import { TEXT_STYLE_ACTION } from "../controller/Block/TextBlock/ITextBlock";
 
 function Container() {
   const containerInstance = useGenerateContainer();
