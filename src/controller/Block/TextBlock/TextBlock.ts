@@ -1,19 +1,20 @@
 import { EditorBlock } from "../EditorBlock/EditorBlock";
-import { normalTextConverter } from "../../Cursor/utilts";
-import { setCursorPos } from "../../Cursor/CursorManager";
-import { CursorPos } from "../../Cursor/ICursorManager";
-import {
-  ITextBlock,
-  ITextBlockContent, TEXT_BLOCK_ACTION,
-  TEXT_STYLE_ACTION,
-  TEXT_TYPE,
-} from "./ITextBlock";
 import {
   blockContentDeepClone,
   checkInSelection,
   findFirstContent,
   generateNewContent,
-} from "../utils";
+  normalTextConverter
+} from "./utils";
+import { setCursorPos } from "../../Cursor/CursorManager";
+import { CursorPos } from "../../Cursor/ICursorManager";
+import {
+  ITextBlock,
+  ITextBlockContent,
+  TEXT_BLOCK_ACTION,
+  TEXT_STYLE_ACTION,
+  TEXT_TYPE,
+} from "./ITextBlock";
 import { LinkedList } from "../../../utils/LinkedList/LinkedList";
 import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
 import { IEditorBlock } from "../EditorBlock/IEditorBlock";

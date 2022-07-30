@@ -5,7 +5,7 @@ import {
   ITextBlockContent,
   TEXT_TYPE,
 } from "./ITextBlock";
-import { normalTextConverter } from "../../Cursor/utilts";
+import {normalTextConverter} from "./utils";
 
 interface IHeadingBlock extends ITextBlock {
   headingType: HeadingTypeCode;

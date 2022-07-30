@@ -1,37 +1,8 @@
-import { ITextBlockContent } from "../Block/TextBlock/ITextBlock";
 
 interface ICursorPosition {
   start: number;
   end: number;
 }
-
-export const normalTextConverter = (textContent: string): string => {
-  return (
-    textContent
-      // @ts-ignore
-      .replaceAll("&lt;", "<")
-      .replaceAll("&gt;", ">")
-      .replaceAll("&nbsp;", " ")
-      .replaceAll("&amp;", "&")
-      .replaceAll("&quot;", `"`)
-      .replaceAll("&apos;", "'")
-  );
-};
-
-export const getSelectionRange = (blockContents: ITextBlockContent[], blockRef) => {
-  const selectionObject = window.getSelection();
-  const selectionLength = selectionObject.toString().length;
-  const targetNode = selectionObject.anchorNode.parentNode;
-  const childNodes: HTMLElement[] = Array.from(blockRef.childNodes);
-  const insertIndex = childNodes.findIndex((child) => {
-    return child.nodeName === "#text"
-      ? child.parentNode.isSameNode(targetNode)
-      : child.isSameNode(targetNode);
-  });
-  for (let i = 0; i < selectionObject.rangeCount; i++) {
-    annotateType(selectionObject.getRangeAt(i), "mark");
-  }
-};
 
 export function getSelectionCharacterOffsetWithin(element): ICursorPosition {
   let start = 0;
@@ -60,9 +31,4 @@ export function getSelectionCharacterOffsetWithin(element): ICursorPosition {
     end = preCaretTextRange.text.length;
   }
   return { start: start, end: end };
-}
-
-function annotateType(range, type) {
-  const newNode = document.createElement(type);
-  range.surroundContents(newNode);
 }

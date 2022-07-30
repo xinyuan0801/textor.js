@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import "../style/Block.css";
 import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
