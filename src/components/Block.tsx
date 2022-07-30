@@ -1,16 +1,24 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import "../style/Block.css";
-import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
+import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import {CursorPos} from "../controller/Cursor/ICursorManager";
-import {HeadingTypeCode, ITextBlockContent, TEXT_TYPE,} from "../controller/Block/TextBlock/ITextBlock";
-import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
-import {EditorContainer} from "../controller/Container/EditorContainer";
-import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
-import {ISelectedBlock} from "../controller/Container/IEditorContainer";
-import {safeJSONParse} from "../controller/Block/utils";
-import {BLOCK_TYPE, IEditorBlock,} from "../controller/Block/EditorBlock/IEditorBlock";
-import {HeadingBlock} from "../controller/Block/TextBlock/HeadingBlock";
+import { CursorPos } from "../controller/Cursor/ICursorManager";
+import {
+  HeadingTypeCode,
+  ITextBlockContent,
+  TEXT_BLOCK_ACTION,
+  TEXT_TYPE,
+} from "../controller/Block/TextBlock/ITextBlock";
+import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
+import { EditorContainer } from "../controller/Container/EditorContainer";
+import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
+import { ISelectedBlock } from "../controller/Container/IEditorContainer";
+import { safeJSONParse } from "../controller/Block/utils";
+import {
+  BLOCK_TYPE,
+  IEditorBlock,
+} from "../controller/Block/EditorBlock/IEditorBlock";
+import { HeadingBlock } from "../controller/Block/TextBlock/HeadingBlock";
 
 const Block = React.memo((props) => {
   const {
@@ -22,10 +30,6 @@ const Block = React.memo((props) => {
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
   } = props;
-  const [blockContents]: [
-    blockContents: ITextBlockContent[],
-    setBlockContents: any
-  ] = useState<ITextBlockContent[]>(blockInfo.getContents());
 
   useEffect(() => {
     blockInfo.setFocused(CursorPos.end);
@@ -42,7 +46,7 @@ const Block = React.memo((props) => {
     );
   };
 
-  const debounceSave = debounce(savingBlockContent, 1000);
+  const debounceSave = debounce(savingBlockContent, 200);
 
   const debounceRecordHistory = debounce(
     (blockInfo as TextBlock).recordHistory.bind(blockInfo),
@@ -82,6 +86,17 @@ const Block = React.memo((props) => {
     } else if (e.code === "Backspace") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
+      if (
+        blockInfo.getType() === BLOCK_TYPE.text ||
+        blockInfo.getType() === BLOCK_TYPE.heading
+      ) {
+        const textBlock = blockInfo as TextBlock;
+        if (textBlock.getPrevAction() === TEXT_BLOCK_ACTION.input) {
+          savingBlockContent(blockInfo.getRef());
+          textBlock.recordHistory();
+        }
+        textBlock.setPrevAction(TEXT_BLOCK_ACTION.delete);
+      }
       if (caretPos.start === 0 && selfIndex !== 0) {
         e.preventDefault();
         savingBlockContent(blockInfo.ref);
@@ -142,6 +157,9 @@ const Block = React.memo((props) => {
   };
 
   const handleOnInput = () => {
+    if (blockInfo.getType() === BLOCK_TYPE.text || BLOCK_TYPE.heading) {
+      (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.input);
+    }
     debounceSave(blockInfo.ref);
     debounceRecordHistory();
   };

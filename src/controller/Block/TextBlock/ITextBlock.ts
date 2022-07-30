@@ -1,13 +1,20 @@
 import { LinkedList } from "../../../utils/LinkedList/LinkedList";
 import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
-import {IEditorBlock} from "../EditorBlock/IEditorBlock";
+import { IEditorBlock } from "../EditorBlock/IEditorBlock";
 
-interface ITextBlock extends IEditorBlock{
+enum TEXT_BLOCK_ACTION  {
+  input,
+  delete
+}
+
+interface ITextBlock extends IEditorBlock {
   history: LinkedList<ITextBlockContent[]>;
   historyPtr: number;
   currentEra: LinkedListNode<ITextBlockContent[]>;
+  prevAction: TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION;
 
   getTotalContentLength(): number;
+  setPrevAction(newAction: TEXT_BLOCK_ACTION): void
   sync(currentContent: HTMLElement): void;
   recordHistory(): void;
   undoHistory(): void;
@@ -71,4 +78,5 @@ export {
   TEXT_STYLE_ACTION,
   ITextBlock,
   HeadingTypeCode,
+  TEXT_BLOCK_ACTION
 };

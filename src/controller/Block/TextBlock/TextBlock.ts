@@ -4,7 +4,7 @@ import { setCursorPos } from "../../Cursor/CursorManager";
 import { CursorPos } from "../../Cursor/ICursorManager";
 import {
   ITextBlock,
-  ITextBlockContent,
+  ITextBlockContent, TEXT_BLOCK_ACTION,
   TEXT_STYLE_ACTION,
   TEXT_TYPE,
 } from "./ITextBlock";
@@ -22,16 +22,26 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
   history: LinkedList<ITextBlockContent[]>;
   historyPtr: number;
   currentEra: LinkedListNode<ITextBlockContent[]>;
+  prevAction: TEXT_BLOCK_ACTION;
 
   constructor(key, type, blockContents) {
     super(key, type, blockContents);
     this.history = new LinkedList<ITextBlockContent[]>(blockContents);
     this.currentEra = this.history.head.next;
     this.historyPtr = 0;
+    this.prevAction = null;
   }
 
   setFocused(position: CursorPos): void {
     setCursorPos(this.ref, position);
+  }
+
+  setPrevAction(newAction: TEXT_BLOCK_ACTION): void {
+    this.prevAction = newAction;
+  }
+
+  getPrevAction(): TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION {
+    return this.prevAction;
   }
 
   getTotalContentLength(): number {
