@@ -84,16 +84,18 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
         });
       } else if (child.nodeName === "A") {
         newRenderBlockContent.push({
-          textType: TEXT_TYPE.link,
+          textType: TEXT_TYPE.normal,
           textContent: normalTextConverter(child.textContent),
           // @ts-ignore
           linkHref: child.getAttribute("href"),
           isMarked: false,
           isBold: false,
+          isUnderline: false,
         });
       }
     });
     this.blockContents = newRenderBlockContent;
+    console.log(newRenderBlockContent.slice());
   }
 
   recordHistory(): void {

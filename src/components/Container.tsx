@@ -6,7 +6,9 @@ import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
 import "../style/container.css";
 import { useGenerateContainer } from "./ContainerHooks";
 import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
-import { TEXT_STYLE_ACTION } from "../controller/Block/TextBlock/ITextBlock";
+import {HeadingTypeCode, TEXT_STYLE_ACTION, TEXT_TYPE} from "../controller/Block/TextBlock/ITextBlock";
+import {BLOCK_TYPE} from "../controller/Block/EditorBlock/IEditorBlock";
+import {HeadingBlock} from "../controller/Block/TextBlock/HeadingBlock";
 
 function Container() {
   const containerInstance = useGenerateContainer();
@@ -22,7 +24,7 @@ function Container() {
     const editorBlocks: EditorBlock[] = containerInstance.current.getBlocks();
     const lastBlock: EditorBlock = editorBlocks[editorBlocks.length - 1];
     if (!lastBlock || lastBlock.ref.innerHTML !== "") {
-      const testTextBlock = new TextBlock(Date.now(), "text", []);
+      const testTextBlock = new HeadingBlock(Date.now(), BLOCK_TYPE.heading, [{textContent: "测试HEADING", }], HeadingTypeCode.one);
       containerInstance.current.insertBlock(-1, testTextBlock);
       const blocksArray = containerInstance.current.getBlocks().slice();
       // due to useRef, manually calling rerendering
@@ -44,6 +46,7 @@ function Container() {
         );
         targetBlock.setKey(Date.now());
         syncBlockState(containerInstance.current.getBlocks());
+        console.log(containerInstance.current.getBlocks().slice());
       }
     }
   };

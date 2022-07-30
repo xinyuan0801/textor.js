@@ -2,7 +2,7 @@ import { CursorPos } from "../../Cursor/ICursorManager";
 
 interface IEditorBlock {
   key: number;
-  type: string;
+  type: BLOCK_TYPE;
   blockContents: any[];
   ref: HTMLElement;
 
@@ -14,7 +14,14 @@ interface IEditorBlock {
   setContent(blockContents: any[]): void;
   getKey(): number;
   setKey(newKey: number);
-  getType(): string;
+  getType(): BLOCK_TYPE;
 }
 
-export { IEditorBlock };
+enum BLOCK_TYPE {
+  text, // text with different styles
+  heading, // heading text
+  list, // list text
+  image, // image text
+}
+
+export { IEditorBlock, BLOCK_TYPE };

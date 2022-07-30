@@ -1,16 +1,16 @@
 import { CursorPos } from "../../Cursor/ICursorManager";
-import { IEditorBlock } from "./IEditorBlock";
+import {BLOCK_TYPE, IEditorBlock} from "./IEditorBlock";
 import {ITextBlockContent} from "../TextBlock/ITextBlock";
 
 abstract class EditorBlock implements IEditorBlock {
   key: number;
-  type: string;
+  type: BLOCK_TYPE;
   blockContents: ITextBlockContent[];
   ref: HTMLElement;
 
   protected constructor(
     key: number,
-    type: string,
+    type: BLOCK_TYPE,
     blockContents: ITextBlockContent[],
     ref?: HTMLElement
   ) {
@@ -48,7 +48,7 @@ abstract class EditorBlock implements IEditorBlock {
     this.key = newKey;
   }
 
-  getType(): string {
+  getType(): BLOCK_TYPE {
     return this.type;
   }
 }

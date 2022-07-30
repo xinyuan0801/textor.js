@@ -1,7 +1,8 @@
 import { LinkedList } from "../../../utils/LinkedList/LinkedList";
 import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
+import {IEditorBlock} from "../EditorBlock/IEditorBlock";
 
-interface ITextBlock {
+interface ITextBlock extends IEditorBlock{
   history: LinkedList<ITextBlockContent[]>;
   historyPtr: number;
   currentEra: LinkedListNode<ITextBlockContent[]>;
@@ -35,7 +36,7 @@ interface ITextBlock {
 
 enum TEXT_TYPE {
   normal, // text with different styles
-  link, // link text
+  heading, // heading text
 }
 
 // different text annotation style
@@ -51,11 +52,23 @@ enum TEXT_STYLE_ACTION {
 // Data structure for content in each block
 interface ITextBlockContent {
   textType: TEXT_TYPE;
+  textContent: string;
   isMarked?: boolean;
   isBold?: boolean;
   isUnderline?: boolean;
-  textContent: string;
   linkHref?: string;
 }
 
-export { ITextBlockContent, TEXT_TYPE, TEXT_STYLE_ACTION, ITextBlock };
+enum HeadingTypeCode {
+  one,
+  two,
+  three,
+}
+
+export {
+  ITextBlockContent,
+  TEXT_TYPE,
+  TEXT_STYLE_ACTION,
+  ITextBlock,
+  HeadingTypeCode,
+};

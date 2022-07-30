@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import "../style/Block.css";
-import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
+import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import { CursorPos } from "../controller/Cursor/ICursorManager";
-import { ITextBlockContent, TEXT_TYPE } from "../controller/Block/TextBlock/ITextBlock";
-import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
-import { EditorContainer } from "../controller/Container/EditorContainer";
-import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
-import { ISelectedBlock } from "../controller/Container/IEditorContainer";
-import { safeJSONParse } from "../controller/Block/utils";
-import { IEditorBlock } from "../controller/Block/EditorBlock/IEditorBlock";
+import {CursorPos} from "../controller/Cursor/ICursorManager";
+import {HeadingTypeCode, ITextBlockContent, TEXT_TYPE,} from "../controller/Block/TextBlock/ITextBlock";
+import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
+import {EditorContainer} from "../controller/Container/EditorContainer";
+import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
+import {ISelectedBlock} from "../controller/Container/IEditorContainer";
+import {safeJSONParse} from "../controller/Block/utils";
+import {BLOCK_TYPE, IEditorBlock,} from "../controller/Block/EditorBlock/IEditorBlock";
+import {HeadingBlock} from "../controller/Block/TextBlock/HeadingBlock";
 
 const Block = React.memo((props) => {
   const {
@@ -85,6 +86,10 @@ const Block = React.memo((props) => {
         e.preventDefault();
         savingBlockContent(blockInfo.ref);
         const prevBlock = containerInfo.getBlocks()[selfIndex - 1];
+        if (prevBlock.getType() !== blockInfo.getType()) {
+          prevBlock.setFocused(CursorPos.end);
+          return;
+        }
         if (prevBlock.ref.innerHTML === "") {
           containerInfo.deleteBlock(prevBlock.getKey());
         } else {
@@ -103,8 +108,10 @@ const Block = React.memo((props) => {
     } else if (e.code === "ArrowDown") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       const contentLength = (blockInfo as TextBlock).getTotalContentLength();
+      console.log(blockInfo);
       if (caretPos.end === contentLength) {
         e.preventDefault();
+        console.log("trying go down");
         const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
         if (selfIndex < containerInfo.getBlocks().length - 1) {
           containerInfo.setFocusByIndex(selfIndex + 1, CursorPos.start);
@@ -139,11 +146,22 @@ const Block = React.memo((props) => {
     debounceRecordHistory();
   };
 
-  const parseBlockContent = (
-    content: ITextBlockContent,
-    index: number
-  ): HTMLElement | string => {
-    if (content.textType === TEXT_TYPE.normal) {
+  const parseTextBlockContents = (
+    contents: ITextBlockContent[]
+  ): HTMLElement[] => {
+    return contents.map((content: ITextBlockContent, index: number) => {
+      // no annotation support for link text
+      if (content.linkHref) {
+        return (
+          <a
+            href={content.linkHref}
+            contentEditable={false}
+            key={Date.now() + index}
+          >
+            {content.textContent}
+          </a>
+        );
+      }
       let baseElement = content.textContent;
       baseElement = content.isUnderline ? (
         <u key={Date.now() * Math.random() + "underline"}>{baseElement}</u>
@@ -161,16 +179,40 @@ const Block = React.memo((props) => {
         baseElement
       );
       return baseElement;
-    } else if (content.textType === TEXT_TYPE.link) {
+    });
+  };
+
+  const parseHeadingBlockContents = (
+    contents: ITextBlockContent[]
+  ): HTMLElement[] | undefined => {
+    const headingBlockInfo = blockInfo as HeadingBlock;
+    const headingContent = contents[0];
+    const baseElement = headingContent.textContent;
+    const headingSize = headingBlockInfo.getHeadingType();
+    if (headingSize === HeadingTypeCode.one) {
       return (
-        <a
-          href={content.linkHref}
-          contentEditable={false}
-          key={Date.now() + index}
-        >
-          {content.textContent}
-        </a>
+        <h1 key={Date.now() * Math.random() + "heading1"}>{baseElement}</h1>
       );
+    } else if (headingSize === HeadingTypeCode.two) {
+      return (
+        <h2 key={Date.now() * Math.random() + "heading1"}>{baseElement}</h2>
+      );
+    } else if (headingSize === HeadingTypeCode.three) {
+      return (
+        <h3 key={Date.now() * Math.random() + "heading1"}>{baseElement}</h3>
+      );
+    }
+  };
+
+  const parseBlockContent = (
+    blockInfo: IEditorBlock
+  ): HTMLElement[] | string[] => {
+    const blockContents = blockInfo.getContents();
+    const blockType = blockInfo.getType();
+    if (blockType === BLOCK_TYPE.text) {
+      return parseTextBlockContents(blockContents);
+    } else if (blockType === BLOCK_TYPE.heading) {
+      return parseHeadingBlockContents(blockContents);
     }
   };
 
@@ -244,7 +286,7 @@ const Block = React.memo((props) => {
       suppressContentEditableWarning={true}
       ref={(el) => collectRef(el)}
     >
-      {blockContents.map(parseBlockContent)}
+      {parseBlockContent(blockInfo)}
     </div>
   );
 });

@@ -1,7 +1,8 @@
-import { EditorBlock } from "../Block/EditorBlock/EditorBlock";
-import { TextBlock } from "../Block/TextBlock/TextBlock";
-import { CursorPos } from "../Cursor/ICursorManager";
+import {EditorBlock} from "../Block/EditorBlock/EditorBlock";
+import {TextBlock} from "../Block/TextBlock/TextBlock";
+import {CursorPos} from "../Cursor/ICursorManager";
 import {IClipboardInfo, ISelectedBlock} from "./IEditorContainer";
+import {BLOCK_TYPE} from "../Block/EditorBlock/IEditorBlock";
 
 export class EditorContainer {
   blocks: EditorBlock[];
@@ -17,7 +18,7 @@ export class EditorContainer {
   }
 
   insertBlock(index: number, insertBlock?: EditorBlock): number {
-    const defaultBlock = new TextBlock(Date.now(), "text", []);
+    const defaultBlock = new TextBlock(Date.now(), BLOCK_TYPE.text, []);
     if (index === -1 || index === this.blocks.length) {
       this.blocks.push(insertBlock || defaultBlock);
       return 1;
