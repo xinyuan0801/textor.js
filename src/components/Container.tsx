@@ -1,13 +1,16 @@
-import React, { useCallback, useState } from "react";
+import React, {useCallback, useState} from "react";
 
-import { Block } from "./Block";
-import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
+import {Block} from "./Block";
+import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
 
 import "../style/container.css";
-import { useGenerateContainer } from "./ContainerHooks";
-import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
-import { TEXT_STYLE_ACTION } from "../controller/Block/TextBlock/ITextBlock";
-import { BLOCK_TYPE } from "../controller/Block/EditorBlock/IEditorBlock";
+import {useGenerateContainer} from "./ContainerHooks";
+import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
+import {HeadingTypeCode, TEXT_STYLE_ACTION, TEXT_TYPE} from "../controller/Block/TextBlock/ITextBlock";
+import {BLOCK_TYPE} from "../controller/Block/EditorBlock/IEditorBlock";
+import {CursorPos} from "../controller/Cursor/ICursorManager";
+import {HeadingBlock} from "../controller/Block/TextBlock/HeadingBlock";
+import {ListBlock} from "../controller/Block/ListBlock/ListBlock";
 
 function Container() {
   const containerInstance = useGenerateContainer();
@@ -23,11 +26,17 @@ function Container() {
     const editorBlocks: EditorBlock[] = containerInstance.current.getBlocks();
     const lastBlock: EditorBlock = editorBlocks[editorBlocks.length - 1];
     if (!lastBlock || lastBlock.ref.innerHTML !== "") {
-      const testTextBlock = new TextBlock(Date.now(), BLOCK_TYPE.text, []);
+      const testTextBlock = new ListBlock(Date.now(), BLOCK_TYPE.list, [
+        [{ textType: TEXT_TYPE.list, textContent: "list 第一行测试" }],
+        [{ textType: TEXT_TYPE.list, textContent: "list 第二行测试" }],
+      ]);
       containerInstance.current.insertBlock(-1, testTextBlock);
       const blocksArray = containerInstance.current.getBlocks().slice();
       // due to useRef, manually calling rerendering
       setBlockArray(blocksArray);
+    }
+    else {
+      lastBlock.setFocused(CursorPos.end);
     }
   };
 
@@ -50,8 +59,43 @@ function Container() {
     }
   };
 
+  const addHeading = (headingSize: HeadingTypeCode) => {
+    const headingBlock = new HeadingBlock(Date.now(), BLOCK_TYPE.heading, [{textType: TEXT_TYPE.heading, textContent: "heading测试"}], headingSize);
+    containerInstance.current.insertBlock(-1, headingBlock);
+  }
+
   return (
     <>
+      <button
+        onClick={() => {
+          addHeading(HeadingTypeCode.one)
+          const blocksArray = containerInstance.current.getBlocks().slice();
+          // due to useRef, manually calling rerendering
+          setBlockArray(blocksArray);
+        }}
+      >
+        增加heading1
+      </button>
+      <button
+        onClick={() => {
+          addHeading(HeadingTypeCode.two)
+          const blocksArray = containerInstance.current.getBlocks().slice();
+          // due to useRef, manually calling rerendering
+          setBlockArray(blocksArray);
+        }}
+      >
+        增加heading2
+      </button>
+      <button
+        onClick={() => {
+          addHeading(HeadingTypeCode.three)
+          const blocksArray = containerInstance.current.getBlocks().slice();
+          // due to useRef, manually calling rerendering
+          setBlockArray(blocksArray);
+        }}
+      >
+        增加heading3
+      </button>
       <button
         onClick={() => {
           handleSelection(TEXT_STYLE_ACTION.marked);

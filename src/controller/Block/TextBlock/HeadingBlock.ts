@@ -5,7 +5,7 @@ import {
   ITextBlockContent,
   TEXT_TYPE,
 } from "./ITextBlock";
-import {normalTextConverter} from "./utils";
+import { normalTextConverter } from "./utils";
 
 interface IHeadingBlock extends ITextBlock {
   headingType: HeadingTypeCode;
@@ -23,7 +23,7 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
     return this.headingType;
   }
 
-  sync(currentContent: HTMLElement) {
+  sync(currentContent: HTMLElement): ITextBlockContent[] {
     const newRenderBlockContent: ITextBlockContent[] = [];
     const childNodes = currentContent.childNodes;
     console.log(childNodes);
@@ -39,11 +39,11 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
           isMarked: false,
           isBold: false,
           isUnderline: false,
+          headingSize: child.nodeName as HeadingTypeCode,
         });
       }
     });
-    this.blockContents = newRenderBlockContent;
-    console.log(newRenderBlockContent.slice());
+    return newRenderBlockContent;
   }
 
   setContent(blockContents: ITextBlockContent[]) {
@@ -62,4 +62,4 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
   }
 }
 
-export { HeadingBlock };
+export { HeadingBlock, IHeadingBlock };

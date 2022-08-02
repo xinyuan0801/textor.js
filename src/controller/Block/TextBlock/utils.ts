@@ -1,5 +1,4 @@
 import { ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./ITextBlock";
-import {safeJSONParse} from "../utils";
 
 interface IFirstContentInfo {
   firstContentIndex: number;
@@ -45,7 +44,11 @@ function generateNewContent(
     isMarked: parentContent.isMarked,
     isBold: parentContent.isBold,
     isUnderline: parentContent.isUnderline,
+    headingSize: parentContent.headingSize
   };
+  if (newType === undefined) {
+    return newContent;
+  }
   if (newType === TEXT_STYLE_ACTION.bold) {
     newContent.isBold = true;
   } else if (newType === TEXT_STYLE_ACTION.marked) {
@@ -58,9 +61,6 @@ function generateNewContent(
     newContent.isUnderline = true;
   } else if (newType === TEXT_STYLE_ACTION.removeUnderline) {
     newContent.isUnderline = false;
-  }
-  if (!newType) {
-    return newContent;
   }
   return newContent;
 }
@@ -88,15 +88,10 @@ function findFirstContent(
   return { firstContentIndex: -1, firstContentStart: -1 };
 }
 
-function blockContentDeepClone(blockContents: ITextBlockContent[]) {
-  return safeJSONParse(JSON.stringify(blockContents));
-}
-
 export {
   normalTextConverter,
   generateNewContent,
   findFirstContent,
   IFirstContentInfo,
   checkInSelection,
-  blockContentDeepClone
 };

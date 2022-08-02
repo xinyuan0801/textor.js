@@ -18,15 +18,15 @@ export class EditorContainer {
   }
 
   insertBlock(index: number, insertBlock?: EditorBlock): number {
-    const defaultBlock = new TextBlock(Date.now(), BLOCK_TYPE.text, []);
+    const defaultBlock = insertBlock ? insertBlock : new TextBlock(Date.now(), BLOCK_TYPE.text, []);
     if (index === -1 || index === this.blocks.length) {
-      this.blocks.push(insertBlock || defaultBlock);
+      this.blocks.push(defaultBlock);
       return 1;
     }
     if (typeof this.blocks[index] === "undefined") {
       return 0;
     }
-    this.blocks.splice(index, 0, insertBlock || defaultBlock);
+    this.blocks.splice(index, 0, defaultBlock);
     return 1;
   }
 

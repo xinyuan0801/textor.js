@@ -1,6 +1,5 @@
 import { EditorBlock } from "../EditorBlock/EditorBlock";
 import {
-  blockContentDeepClone,
   checkInSelection,
   findFirstContent,
   generateNewContent,
@@ -16,14 +15,10 @@ import {
   TEXT_TYPE,
 } from "./ITextBlock";
 import { LinkedList } from "../../../utils/LinkedList/LinkedList";
-import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
-import { IEditorBlock } from "../EditorBlock/IEditorBlock";
 
-export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
-  history: LinkedList<ITextBlockContent[]>;
-  historyPtr: number;
-  currentEra: LinkedListNode<ITextBlockContent[]>;
+export class TextBlock extends EditorBlock implements ITextBlock {
   prevAction: TEXT_BLOCK_ACTION;
+  blockContents: ITextBlockContent[];
 
   constructor(key, type, blockContents) {
     super(key, type, blockContents);
@@ -31,10 +26,15 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
     this.currentEra = this.history.head.next;
     this.historyPtr = 0;
     this.prevAction = null;
+    this.blockContents = blockContents;
   }
 
   setFocused(position: CursorPos): void {
     setCursorPos(this.ref, position);
+  }
+
+  getContents(): ITextBlockContent[] {
+    return this.blockContents;
   }
 
   setPrevAction(newAction: TEXT_BLOCK_ACTION): void {
@@ -53,9 +53,10 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
     return totalLength;
   }
 
-  sync(currentContent: HTMLElement): void {
+  static parseTextHTML(currentContent: ChildNode): ITextBlockContent[] {
     const newRenderBlockContent: ITextBlockContent[] = [];
     const childNodes = currentContent.childNodes;
+    console.log(childNodes);
     childNodes.forEach((child) => {
       if (child.nodeName === "#text") {
         newRenderBlockContent.push({
@@ -105,62 +106,22 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
         });
       }
     });
-    this.blockContents = newRenderBlockContent;
     console.log(newRenderBlockContent.slice());
+    return newRenderBlockContent;
   }
 
-  recordHistory(): void {
-    console.log(this.history);
-    if (this.historyPtr !== this.history.length - 1) {
-      const newEraNode = new LinkedListNode(
-        blockContentDeepClone(this.getContents())
-      );
-      console.log(
-        "new route",
-        blockContentDeepClone(this.currentEra.val),
-        blockContentDeepClone(this.getContents())
-      );
-      this.currentEra.next = newEraNode;
-      newEraNode.prev = this.currentEra;
-      newEraNode.next = this.history.tail;
-      this.history.tail.prev = newEraNode;
-      this.currentEra = newEraNode;
-    } else {
-      this.history.append(blockContentDeepClone(this.getContents()));
-      this.currentEra = this.currentEra.next;
-    }
-    this.historyPtr++;
-    console.log("current era", this.currentEra);
+  sync(currentContent: HTMLElement): ITextBlockContent[] {
+    return TextBlock.parseTextHTML(currentContent);
   }
 
-  undoHistory(): void {
-    if (this.historyPtr === 0) {
-      return;
-    }
-    this.historyPtr--;
-    this.currentEra = this.currentEra.prev;
-    this.setContent(blockContentDeepClone(this.currentEra.val));
-    console.log("current era", this.currentEra);
-  }
-
-  redoHistory(): void {
-    if (this.historyPtr === this.history.length - 1) {
-      return;
-    }
-    this.historyPtr++;
-    this.currentEra = this.currentEra.next;
-    this.setContent(blockContentDeepClone(this.currentEra.val));
-    console.log("current era", this.currentEra);
-  }
-
-  makeBlockContent(
+  static annotateBlockContent(
     contentIndex: number,
     contentStart: number,
     selectionStart: number,
     selectionEnd: number,
-    newType: TEXT_STYLE_ACTION
-  ): void {
-    const blockContent = this.getContents();
+    newType: TEXT_STYLE_ACTION,
+    blockContent: ITextBlockContent[]
+  ): ITextBlockContent[] {
     const targetContent = blockContent[contentIndex];
     const contentEnd =
       contentStart + blockContent[contentIndex].textContent.length;
@@ -238,10 +199,11 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
       );
       blockContent.splice(contentIndex + 1, 0, newContent, thirdContent);
     }
-    this.setContent(blockContent);
+    console.log(blockContent.slice());
+    return blockContent;
   }
 
-  getCopiedText(
+  generateCopyContent(
     contentIndex: number,
     contentStart: number,
     selectionStart: number,
@@ -286,7 +248,7 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
     }
   }
 
-  copySelectedText(startIndex: number, endIndex: number): ITextBlockContent[] {
+  copyContent(startIndex: number, endIndex: number): ITextBlockContent[] {
     const currentContent = this.getContents();
     let {
       firstContentStart: leftBound,
@@ -303,11 +265,12 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
       )
     ) {
       selectedTexts.push(
-        this.getCopiedText(currentContentIndex, leftBound, startIndex, endIndex)
+        this.generateCopyContent(currentContentIndex, leftBound, startIndex, endIndex)
       );
       leftBound += currentContent[currentContentIndex].textContent.length;
       currentContentIndex++;
     }
+    console.log("selected text", selectedTexts);
     return selectedTexts;
   }
 
@@ -333,13 +296,16 @@ export class TextBlock extends EditorBlock implements IEditorBlock, ITextBlock {
       const currentContentOriginLength =
         currentContent[currentContentIndex].textContent.length;
       const rightBound = leftBound + currentContentOriginLength;
-      this.makeBlockContent(
+      const blockContents = this.getContents();
+      const newBlockContent = TextBlock.annotateBlockContent(
         currentContentIndex,
         leftBound,
         startIndex,
         endIndex,
-        type
+        type,
+        blockContents
       );
+      this.setContent(newBlockContent);
       if (startIndex <= leftBound && rightBound <= endIndex) {
         console.log("+1 loader");
         currentContentIndex++;

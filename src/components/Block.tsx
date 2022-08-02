@@ -19,6 +19,7 @@ import {
   IEditorBlock,
 } from "../controller/Block/EditorBlock/IEditorBlock";
 import { HeadingBlock } from "../controller/Block/TextBlock/HeadingBlock";
+import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
 
 const Block = React.memo((props) => {
   const {
@@ -38,7 +39,8 @@ const Block = React.memo((props) => {
   useEffect(() => {});
 
   const savingBlockContent = (e) => {
-    blockInfo.sync(e);
+    const newContents = blockInfo.sync(e);
+    blockInfo.setContent(newContents);
     console.log(
       "saving",
       blockInfo.getContents(),
@@ -65,13 +67,44 @@ const Block = React.memo((props) => {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === "Enter") {
-      e.preventDefault();
-      savingBlockContent(blockInfo.ref);
-      const targetIndex: number = containerInfo.getBlockIndex(
-        blockInfo.getKey()
-      );
-      containerInfo.insertBlock(targetIndex + 1);
-      syncState(containerInfo.getBlocks());
+      if (blockInfo.getType() === BLOCK_TYPE.list) {
+        const caretPos = getSelectionCharacterOffsetWithin(e.target);
+        console.log(caretPos);
+        if (
+          caretPos.start === caretPos.end &&
+          caretPos.start === (blockInfo as ListBlock).getTotalContentLength()
+        ) {
+          const listElements = (blockInfo as ListBlock).getContents();
+          const lastListElement = listElements[listElements.length - 1];
+          console.log(lastListElement);
+          if (
+            lastListElement.length === 0 ||
+            (lastListElement.length === 1 &&
+              lastListElement[0].textContent.length === 0)
+          ) {
+            e.preventDefault();
+            savingBlockContent(blockInfo.ref);
+            (blockInfo as ListBlock).setContent(
+              listElements.slice(0, listElements.length - 1)
+            );
+            (blockInfo as ListBlock).setKey(Date.now() * Math.random());
+            const targetIndex: number = containerInfo.getBlockIndex(
+              blockInfo.getKey()
+            );
+            containerInfo.insertBlock(targetIndex + 1);
+            syncState(containerInfo.getBlocks());
+          }
+        }
+        console.log(caretPos);
+      } else {
+        e.preventDefault();
+        savingBlockContent(blockInfo.ref);
+        const targetIndex: number = containerInfo.getBlockIndex(
+          blockInfo.getKey()
+        );
+        containerInfo.insertBlock(targetIndex + 1);
+        syncState(containerInfo.getBlocks());
+      }
     } else if (e.code === "Backspace" && blockInfo.ref.innerHTML === "") {
       e.preventDefault();
       savingBlockContent(blockInfo.ref);
@@ -157,7 +190,10 @@ const Block = React.memo((props) => {
   };
 
   const handleOnInput = () => {
-    if (blockInfo.getType() === BLOCK_TYPE.text || BLOCK_TYPE.heading) {
+    if (
+      blockInfo.getType() === BLOCK_TYPE.text ||
+      blockInfo.getType() === BLOCK_TYPE.heading
+    ) {
       (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.input);
     }
     debounceSave(blockInfo.ref);
@@ -222,20 +258,35 @@ const Block = React.memo((props) => {
     }
   };
 
+  const parseListElement = (content: ITextBlockContent[], index: number) => {
+    return <li key={Date.now() + index}>{parseTextBlockContents(content)}</li>;
+  };
+
+  const parseListBlock = (
+    listContents: ITextBlockContent[][]
+  ): HTMLElement[] | undefined => {
+    return <ul>{listContents.map(parseListElement)}</ul>;
+  };
+
   const parseBlockContent = (
     blockInfo: IEditorBlock
   ): HTMLElement[] | string[] => {
-    const blockContents = blockInfo.getContents();
     const blockType = blockInfo.getType();
     if (blockType === BLOCK_TYPE.text) {
-      return parseTextBlockContents(blockContents);
+      const textBlockContent = (blockInfo as TextBlock).getContents();
+      return parseTextBlockContents(textBlockContent);
     } else if (blockType === BLOCK_TYPE.heading) {
-      return parseHeadingBlockContents(blockContents);
+      const headingBlockContent = (blockInfo as HeadingBlock).getContents();
+      return parseHeadingBlockContents(headingBlockContent);
+    } else if (blockType === BLOCK_TYPE.list) {
+      const listContents = (blockInfo as ListBlock).getContents();
+      return parseListBlock(listContents);
     }
   };
 
   const handleTextSelection = () => {
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+    console.log(caretPos);
     if (caretPos.start !== caretPos.end) {
       const selectedBlockInfo: ISelectedBlock = {
         blockKey: blockInfo.getKey(),
@@ -249,7 +300,7 @@ const Block = React.memo((props) => {
   const handleCopy = (e: React.ClipboardEvent) => {
     const plainText = window.getSelection().toString();
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    const copiedContent = (blockInfo as TextBlock).copySelectedText(
+    const copiedContent = (blockInfo as TextBlock).copyContent(
       caretPos.start,
       caretPos.end
     );
@@ -268,7 +319,8 @@ const Block = React.memo((props) => {
       e.preventDefault();
       const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
       const contentText = containerClipboard.textContext;
-      const pasteContent = safeJSONParse(contentText);
+      const pasteContent: { key: string; textContent: ITextBlockContent[] } =
+        safeJSONParse(contentText);
       if (pasteContent && pasteContent.key === "lovetiktok") {
         (blockInfo as TextBlock).insertBlockContents(
           pasteContent.textContent,
