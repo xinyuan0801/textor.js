@@ -1,4 +1,4 @@
-import { ITextBlockContent } from "../TextBlock/ITextBlock";
+import { ITextBlockContent } from "../TextBlock/interfaces";
 
 function findMarkedListElement(
   blockContents: ITextBlockContent[][],
@@ -15,7 +15,6 @@ function findMarkedListElement(
     }
     currentStartIndex = currentEndIndex;
   });
-  console.log("target", targetIndex);
   return { targetIndex, targetContentStartIndex };
 }
 
@@ -24,7 +23,6 @@ function getListElementLength(listContent: ITextBlockContent[]) {
   listContent.forEach((content) => {
     count += content.textContent.length;
   });
-  console.log("count", count);
   return count;
 }
 

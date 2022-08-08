@@ -1,17 +1,19 @@
-import { IEditorBlock } from "../EditorBlock/IEditorBlock";
+import { IEditorBlock } from "../EditorBlock/interfaces";
+import { HeadingTypeCode } from "./HeadingBlock";
 
 enum TEXT_BLOCK_ACTION {
-  input,
-  delete,
+  input = "input",
+  delete = "delete",
 }
 
-interface ITextBlock extends Omit<IEditorBlock, 'blockContents' | 'sync'> {
+interface ITextBlock extends Omit<IEditorBlock, "blockContents" | "sync"> {
   prevAction: TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION;
   blockContents: ITextBlockContent[];
 
   getContents(): ITextBlockContent[];
   getTotalContentLength(): number;
   setPrevAction(newAction: TEXT_BLOCK_ACTION): void;
+  getPrevAction(): TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION
   sync(currentContent: ChildNode): ITextBlockContent[];
   generateCopyContent(
     contentIndex: number,
@@ -54,17 +56,10 @@ interface ITextBlockContent {
   headingSize?: HeadingTypeCode;
 }
 
-enum HeadingTypeCode {
-  one = "H1",
-  two = "H2",
-  three = "H3",
-}
-
 export {
   ITextBlockContent,
   TEXT_TYPE,
   TEXT_STYLE_ACTION,
-  ITextBlock,
-  HeadingTypeCode,
   TEXT_BLOCK_ACTION,
+  ITextBlock,
 };

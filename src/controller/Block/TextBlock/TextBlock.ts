@@ -3,17 +3,17 @@ import {
   checkInSelection,
   findFirstContent,
   generateNewContent,
-  normalTextConverter
+  normalTextConverter,
 } from "./utils";
 import { setCursorPos } from "../../Cursor/CursorManager";
-import { CursorPos } from "../../Cursor/ICursorManager";
+import { CursorPos } from "../../Cursor/interfaces";
 import {
   ITextBlock,
   ITextBlockContent,
   TEXT_BLOCK_ACTION,
   TEXT_STYLE_ACTION,
   TEXT_TYPE,
-} from "./ITextBlock";
+} from "./interfaces";
 import { LinkedList } from "../../../utils/LinkedList/LinkedList";
 
 export class TextBlock extends EditorBlock implements ITextBlock {
@@ -53,154 +53,8 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     return totalLength;
   }
 
-  static parseTextHTML(currentContent: ChildNode): ITextBlockContent[] {
-    const newRenderBlockContent: ITextBlockContent[] = [];
-    const childNodes = currentContent.childNodes;
-    console.log(childNodes);
-    childNodes.forEach((child) => {
-      if (child.nodeName === "#text") {
-        newRenderBlockContent.push({
-          textType: TEXT_TYPE.normal,
-          textContent: normalTextConverter(child.textContent),
-          isMarked: false,
-          isBold: false,
-          isUnderline: false,
-        });
-      } else if (child.nodeName === "MARK") {
-        const isBold = child.childNodes[0].nodeName === "B";
-        const isUnderline =
-          child.childNodes[0]?.childNodes[0]?.nodeName === "U";
-        newRenderBlockContent.push({
-          textType: TEXT_TYPE.normal,
-          textContent: normalTextConverter(child.textContent),
-          isMarked: true,
-          isBold: isBold,
-          isUnderline: isUnderline,
-        });
-      } else if (child.nodeName === "B") {
-        const isUnderline = child.childNodes[0].nodeName === "U";
-        newRenderBlockContent.push({
-          textType: TEXT_TYPE.normal,
-          textContent: normalTextConverter(child.textContent),
-          isMarked: false,
-          isBold: true,
-          isUnderline: isUnderline,
-        });
-      } else if (child.nodeName === "U") {
-        newRenderBlockContent.push({
-          textType: TEXT_TYPE.normal,
-          textContent: normalTextConverter(child.textContent),
-          isMarked: false,
-          isBold: false,
-          isUnderline: true,
-        });
-      } else if (child.nodeName === "A") {
-        newRenderBlockContent.push({
-          textType: TEXT_TYPE.normal,
-          textContent: normalTextConverter(child.textContent),
-          // @ts-ignore
-          linkHref: child.getAttribute("href"),
-          isMarked: false,
-          isBold: false,
-          isUnderline: false,
-        });
-      }
-    });
-    console.log(newRenderBlockContent.slice());
-    return newRenderBlockContent;
-  }
-
   sync(currentContent: HTMLElement): ITextBlockContent[] {
     return TextBlock.parseTextHTML(currentContent);
-  }
-
-  static annotateBlockContent(
-    contentIndex: number,
-    contentStart: number,
-    selectionStart: number,
-    selectionEnd: number,
-    newType: TEXT_STYLE_ACTION,
-    blockContent: ITextBlockContent[]
-  ): ITextBlockContent[] {
-    const targetContent = blockContent[contentIndex];
-    const contentEnd =
-      contentStart + blockContent[contentIndex].textContent.length;
-    if (selectionStart <= contentStart && selectionEnd >= contentEnd) {
-      if (newType === TEXT_STYLE_ACTION.bold) {
-        targetContent.isBold = true;
-      } else if (newType === TEXT_STYLE_ACTION.marked) {
-        targetContent.isMarked = true;
-      } else if (newType === TEXT_STYLE_ACTION.unbold) {
-        targetContent.isBold = false;
-      } else if (newType === TEXT_STYLE_ACTION.unmarked) {
-        targetContent.isMarked = false;
-      } else if (newType === TEXT_STYLE_ACTION.underline) {
-        targetContent.isUnderline = true;
-      } else if (newType === TEXT_STYLE_ACTION.removeUnderline) {
-        targetContent.isUnderline = false;
-      }
-    } else if (
-      contentStart <= selectionStart &&
-      contentEnd <= selectionEnd &&
-      contentEnd - 1 >= selectionStart
-    ) {
-      const newContentText = targetContent.textContent.slice(
-        selectionStart - contentStart
-      );
-      targetContent.textContent = targetContent.textContent.slice(
-        0,
-        selectionStart - contentStart
-      );
-      const newContent = generateNewContent(
-        targetContent,
-        newContentText,
-        newType
-      );
-      blockContent.splice(contentIndex + 1, 0, newContent);
-    } else if (
-      selectionStart <= contentStart &&
-      selectionEnd - 1 >= contentStart &&
-      selectionEnd <= contentEnd
-    ) {
-      const newContentText = targetContent.textContent.slice(
-        0,
-        selectionEnd - contentStart
-      );
-      targetContent.textContent = targetContent.textContent.slice(
-        selectionEnd - contentStart
-      );
-      const newContent = generateNewContent(
-        targetContent,
-        newContentText,
-        newType
-      );
-      blockContent.splice(contentIndex, 0, newContent);
-    } else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
-      const targetText = targetContent.textContent;
-      const newContentText = targetText.slice(
-        selectionStart - contentStart,
-        selectionEnd - contentStart
-      );
-      const newContent = generateNewContent(
-        targetContent,
-        newContentText,
-        newType
-      );
-      const thirdContent: ITextBlockContent = {
-        textContent: targetText.slice(selectionEnd - contentStart),
-        textType: TEXT_TYPE.normal,
-        isMarked: targetContent.isMarked,
-        isBold: targetContent.isBold,
-        isUnderline: targetContent.isUnderline,
-      };
-      targetContent.textContent = targetContent.textContent.slice(
-        0,
-        selectionStart - contentStart
-      );
-      blockContent.splice(contentIndex + 1, 0, newContent, thirdContent);
-    }
-    console.log(blockContent.slice());
-    return blockContent;
   }
 
   generateCopyContent(
@@ -265,12 +119,16 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       )
     ) {
       selectedTexts.push(
-        this.generateCopyContent(currentContentIndex, leftBound, startIndex, endIndex)
+        this.generateCopyContent(
+          currentContentIndex,
+          leftBound,
+          startIndex,
+          endIndex
+        )
       );
       leftBound += currentContent[currentContentIndex].textContent.length;
       currentContentIndex++;
     }
-    console.log("selected text", selectedTexts);
     return selectedTexts;
   }
 
@@ -359,5 +217,155 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     }
     blockContents.splice(firstContentIndex, 1, ...newContentsArray);
     this.setContent(blockContents);
+  }
+
+  isEmpty(): boolean {
+    const textContents = this.getContents();
+    return textContents.length === 0;
+  }
+
+  static parseTextHTML(currentContent: ChildNode): ITextBlockContent[] {
+    const newRenderBlockContent: ITextBlockContent[] = [];
+    const childNodes = currentContent.childNodes;
+    console.log(childNodes);
+    childNodes.forEach((child) => {
+      if (child.nodeName === "#text") {
+        newRenderBlockContent.push({
+          textType: TEXT_TYPE.normal,
+          textContent: normalTextConverter(child.textContent),
+          isMarked: false,
+          isBold: false,
+          isUnderline: false,
+        });
+      } else if (child.nodeName === "MARK") {
+        const isBold = child.childNodes[0].nodeName === "B";
+        const isFirstLevelUnderLine = child.childNodes[0].nodeName === "U";
+        const isUnderline =
+          child.childNodes[0]?.childNodes[0]?.nodeName === "U";
+        newRenderBlockContent.push({
+          textType: TEXT_TYPE.normal,
+          textContent: normalTextConverter(child.textContent),
+          isMarked: true,
+          isBold: isBold,
+          isUnderline: isFirstLevelUnderLine || isUnderline,
+        });
+      } else if (child.nodeName === "B") {
+        const isUnderline = child.childNodes[0].nodeName === "U";
+        newRenderBlockContent.push({
+          textType: TEXT_TYPE.normal,
+          textContent: normalTextConverter(child.textContent),
+          isMarked: false,
+          isBold: true,
+          isUnderline: isUnderline,
+        });
+      } else if (child.nodeName === "U") {
+        newRenderBlockContent.push({
+          textType: TEXT_TYPE.normal,
+          textContent: normalTextConverter(child.textContent),
+          isMarked: false,
+          isBold: false,
+          isUnderline: true,
+        });
+      } else if (child.nodeName === "A") {
+        newRenderBlockContent.push({
+          textType: TEXT_TYPE.normal,
+          textContent: normalTextConverter(child.textContent),
+          // @ts-ignore
+          linkHref: child.getAttribute("href"),
+          isMarked: false,
+          isBold: false,
+          isUnderline: false,
+        });
+      }
+    });
+    return newRenderBlockContent;
+  }
+
+  static annotateBlockContent(
+    contentIndex: number,
+    contentStart: number,
+    selectionStart: number,
+    selectionEnd: number,
+    newType: TEXT_STYLE_ACTION,
+    blockContent: ITextBlockContent[]
+  ): ITextBlockContent[] {
+    const targetContent = blockContent[contentIndex];
+    const contentEnd =
+      contentStart + blockContent[contentIndex].textContent.length;
+    if (selectionStart <= contentStart && selectionEnd >= contentEnd) {
+      if (newType === TEXT_STYLE_ACTION.bold) {
+        targetContent.isBold = true;
+      } else if (newType === TEXT_STYLE_ACTION.marked) {
+        targetContent.isMarked = true;
+      } else if (newType === TEXT_STYLE_ACTION.unbold) {
+        targetContent.isBold = false;
+      } else if (newType === TEXT_STYLE_ACTION.unmarked) {
+        targetContent.isMarked = false;
+      } else if (newType === TEXT_STYLE_ACTION.underline) {
+        targetContent.isUnderline = true;
+      } else if (newType === TEXT_STYLE_ACTION.removeUnderline) {
+        targetContent.isUnderline = false;
+      }
+    } else if (
+      contentStart <= selectionStart &&
+      contentEnd <= selectionEnd &&
+      contentEnd - 1 >= selectionStart
+    ) {
+      const newContentText = targetContent.textContent.slice(
+        selectionStart - contentStart
+      );
+      targetContent.textContent = targetContent.textContent.slice(
+        0,
+        selectionStart - contentStart
+      );
+      const newContent = generateNewContent(
+        targetContent,
+        newContentText,
+        newType
+      );
+      blockContent.splice(contentIndex + 1, 0, newContent);
+    } else if (
+      selectionStart <= contentStart &&
+      selectionEnd - 1 >= contentStart &&
+      selectionEnd <= contentEnd
+    ) {
+      const newContentText = targetContent.textContent.slice(
+        0,
+        selectionEnd - contentStart
+      );
+      targetContent.textContent = targetContent.textContent.slice(
+        selectionEnd - contentStart
+      );
+      const newContent = generateNewContent(
+        targetContent,
+        newContentText,
+        newType
+      );
+      blockContent.splice(contentIndex, 0, newContent);
+    } else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
+      const targetText = targetContent.textContent;
+      const newContentText = targetText.slice(
+        selectionStart - contentStart,
+        selectionEnd - contentStart
+      );
+      const newContent = generateNewContent(
+        targetContent,
+        newContentText,
+        newType
+      );
+      const thirdContent: ITextBlockContent = {
+        textContent: targetText.slice(selectionEnd - contentStart),
+        textType: TEXT_TYPE.normal,
+        isMarked: targetContent.isMarked,
+        isBold: targetContent.isBold,
+        isUnderline: targetContent.isUnderline,
+      };
+      targetContent.textContent = targetContent.textContent.slice(
+        0,
+        selectionStart - contentStart
+      );
+      blockContent.splice(contentIndex + 1, 0, newContent, thirdContent);
+    }
+    return blockContent;
   }
 }

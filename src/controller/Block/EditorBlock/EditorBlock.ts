@@ -1,6 +1,6 @@
-import { CursorPos } from "../../Cursor/ICursorManager";
-import { BLOCK_TYPE, IEditorBlock } from "./IEditorBlock";
-import { ITextBlockContent } from "../TextBlock/ITextBlock";
+import { CursorPos } from "../../Cursor/interfaces";
+import { BLOCK_TYPE, IEditorBlock } from "./interfaces";
+import { ITextBlockContent } from "../TextBlock/interfaces";
 import { LinkedList } from "../../../utils/LinkedList/LinkedList";
 import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
 import { blockContentDeepClone } from "./utils";
@@ -23,13 +23,13 @@ abstract class EditorBlock implements IEditorBlock {
     this.key = key;
     this.type = type;
     this.blockContents = blockContents;
-    console.log("from parent", this.blockContents);
     this.ref = ref;
     this.historyPtr = 0;
     this.history = new LinkedList<(ITextBlockContent | ITextBlockContent[])[]>(
       blockContents
     );
     this.currentEra = this.history.head.next;
+    console.log(this.history.tail);
   }
 
   abstract setFocused(position: CursorPos): void;
@@ -41,24 +41,24 @@ abstract class EditorBlock implements IEditorBlock {
     endIndex?: number
   ): ITextBlockContent[];
 
-  recordHistory(): void {
-    console.log(this.history);
+  abstract isEmpty(): boolean;
+
+  recordHistory(newHistory?: any[]): void {
+    const currentHistory =
+      newHistory || blockContentDeepClone(this.getContents());
+    console.log(currentHistory);
+    // if pointer is not at latest history, create new history follow the era that pointer currently on
     if (this.historyPtr !== this.history.length - 1) {
-      const newEraNode = new LinkedListNode(
-        blockContentDeepClone(this.getContents())
-      );
-      console.log(
-        "new route",
-        blockContentDeepClone(this.currentEra.val),
-        blockContentDeepClone(this.getContents())
-      );
+      const newEraNode = new LinkedListNode(currentHistory);
       this.currentEra.next = newEraNode;
       newEraNode.prev = this.currentEra;
       newEraNode.next = this.history.tail;
       this.history.tail.prev = newEraNode;
       this.currentEra = newEraNode;
-    } else {
-      this.history.append(blockContentDeepClone(this.getContents()));
+    }
+    // if pointer is at latest history, create a new history
+    else {
+      this.history.append(currentHistory);
       this.currentEra = this.currentEra.next;
     }
     this.historyPtr++;
@@ -66,6 +66,7 @@ abstract class EditorBlock implements IEditorBlock {
   }
 
   redoHistory(): void {
+    console.log("redo");
     if (this.historyPtr === this.history.length - 1) {
       return;
     }
@@ -76,6 +77,7 @@ abstract class EditorBlock implements IEditorBlock {
   }
 
   undoHistory(): void {
+    console.log("undo");
     if (this.historyPtr === 0) {
       return;
     }
@@ -115,6 +117,10 @@ abstract class EditorBlock implements IEditorBlock {
 
   setType(newType: BLOCK_TYPE) {
     this.type = newType;
+  }
+
+  getCurrEra(): LinkedListNode<(ITextBlockContent | ITextBlockContent[])[]> {
+    return this.currentEra;
   }
 }
 

@@ -1,16 +1,19 @@
-import React, {useCallback, useState} from "react";
+import React, { useCallback, useState } from "react";
 
-import {Block} from "./Block";
-import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
+import { Block } from "./Block";
+import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
 
 import "../style/container.css";
-import {useGenerateContainer} from "./ContainerHooks";
-import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
-import {HeadingTypeCode, TEXT_STYLE_ACTION, TEXT_TYPE} from "../controller/Block/TextBlock/ITextBlock";
-import {BLOCK_TYPE} from "../controller/Block/EditorBlock/IEditorBlock";
-import {CursorPos} from "../controller/Cursor/ICursorManager";
-import {HeadingBlock} from "../controller/Block/TextBlock/HeadingBlock";
-import {ListBlock} from "../controller/Block/ListBlock/ListBlock";
+import { useGenerateContainer } from "./ContainerHooks";
+import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
+import {
+  TEXT_STYLE_ACTION,
+  TEXT_TYPE,
+} from "../controller/Block/TextBlock/interfaces";
+import { BLOCK_TYPE } from "../controller/Block/EditorBlock/interfaces";
+import { CursorPos } from "../controller/Cursor/interfaces";
+import {HeadingBlock, HeadingTypeCode} from "../controller/Block/TextBlock/HeadingBlock";
+import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
 
 function Container() {
   const containerInstance = useGenerateContainer();
@@ -26,16 +29,16 @@ function Container() {
     const editorBlocks: EditorBlock[] = containerInstance.current.getBlocks();
     const lastBlock: EditorBlock = editorBlocks[editorBlocks.length - 1];
     if (!lastBlock || lastBlock.ref.innerHTML !== "") {
-      const testTextBlock = new ListBlock(Date.now(), BLOCK_TYPE.list, [
-        [{ textType: TEXT_TYPE.list, textContent: "list 第一行测试" }],
-        [{ textType: TEXT_TYPE.list, textContent: "list 第二行测试" }],
-      ]);
+      // const testTextBlock = new ListBlock(Date.now(), BLOCK_TYPE.list, [
+      //   [{ textType: TEXT_TYPE.list, textContent: "list 第一行测试" }],
+      //   [{ textType: TEXT_TYPE.list, textContent: "list 第二行测试" }],
+      // ]);
+      const testTextBlock = new TextBlock(Date.now(), BLOCK_TYPE.text, []);
       containerInstance.current.insertBlock(-1, testTextBlock);
       const blocksArray = containerInstance.current.getBlocks().slice();
       // due to useRef, manually calling rerendering
       setBlockArray(blocksArray);
-    }
-    else {
+    } else {
       lastBlock.setFocused(CursorPos.end);
     }
   };
@@ -54,21 +57,36 @@ function Container() {
         );
         targetBlock.setKey(Date.now());
         syncBlockState(containerInstance.current.getBlocks());
-        console.log(containerInstance.current.getBlocks().slice());
       }
     }
   };
 
   const addHeading = (headingSize: HeadingTypeCode) => {
-    const headingBlock = new HeadingBlock(Date.now(), BLOCK_TYPE.heading, [{textType: TEXT_TYPE.heading, textContent: "heading测试"}], headingSize);
+    const headingBlock = new HeadingBlock(
+      Date.now(),
+      BLOCK_TYPE.heading,
+      [{ textType: TEXT_TYPE.heading, textContent: "heading测试" }],
+      headingSize
+    );
     containerInstance.current.insertBlock(-1, headingBlock);
-  }
+  };
+
+  const addList = () => {
+    const listBlock = new ListBlock(Date.now(), BLOCK_TYPE.list, [
+      [{ textContent: "", textType: TEXT_TYPE.list }],
+    ]);
+    containerInstance.current.insertBlock(-1, listBlock);
+    const blocksArray = containerInstance.current.getBlocks().slice();
+    // due to useRef, manually calling rerendering
+    setBlockArray(blocksArray);
+  };
 
   return (
     <>
+      <button onClick={addList}>增加列表元素</button>
       <button
         onClick={() => {
-          addHeading(HeadingTypeCode.one)
+          addHeading(HeadingTypeCode.one);
           const blocksArray = containerInstance.current.getBlocks().slice();
           // due to useRef, manually calling rerendering
           setBlockArray(blocksArray);
@@ -78,7 +96,7 @@ function Container() {
       </button>
       <button
         onClick={() => {
-          addHeading(HeadingTypeCode.two)
+          addHeading(HeadingTypeCode.two);
           const blocksArray = containerInstance.current.getBlocks().slice();
           // due to useRef, manually calling rerendering
           setBlockArray(blocksArray);
@@ -88,7 +106,7 @@ function Container() {
       </button>
       <button
         onClick={() => {
-          addHeading(HeadingTypeCode.three)
+          addHeading(HeadingTypeCode.three);
           const blocksArray = containerInstance.current.getBlocks().slice();
           // due to useRef, manually calling rerendering
           setBlockArray(blocksArray);

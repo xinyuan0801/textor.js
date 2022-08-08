@@ -1,11 +1,16 @@
 import { TextBlock } from "./TextBlock";
 import {
-  HeadingTypeCode,
   ITextBlock,
   ITextBlockContent,
   TEXT_TYPE,
-} from "./ITextBlock";
+} from "./interfaces";
 import { normalTextConverter } from "./utils";
+
+enum HeadingTypeCode {
+  one = "H1",
+  two = "H2",
+  three = "H3",
+}
 
 interface IHeadingBlock extends ITextBlock {
   headingType: HeadingTypeCode;
@@ -62,4 +67,4 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
   }
 }
 
-export { HeadingBlock, IHeadingBlock };
+export { HeadingBlock, IHeadingBlock, HeadingTypeCode };

@@ -48,6 +48,7 @@ export class LinkedList<NodeType> {
       const originPrevNode = this.tail.prev;
       originPrevNode.next = newTail;
       newTail.prev = originPrevNode;
+      newTail.next = this.tail;
       this.tail.prev = newTail;
     }
     this.length++;

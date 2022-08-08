@@ -1,8 +1,8 @@
 import {EditorBlock} from "../Block/EditorBlock/EditorBlock";
 import {TextBlock} from "../Block/TextBlock/TextBlock";
-import {CursorPos} from "../Cursor/ICursorManager";
-import {IClipboardInfo, ISelectedBlock} from "./IEditorContainer";
-import {BLOCK_TYPE} from "../Block/EditorBlock/IEditorBlock";
+import {CursorPos} from "../Cursor/interfaces";
+import {IClipboardInfo, ISelectedBlock} from "./interfaces";
+import {BLOCK_TYPE} from "../Block/EditorBlock/interfaces";
 
 export class EditorContainer {
   blocks: EditorBlock[];

@@ -1,5 +1,5 @@
-import { CursorPos } from "../../Cursor/ICursorManager";
-import { ITextBlockContent } from "../TextBlock/ITextBlock";
+import { CursorPos } from "../../Cursor/interfaces";
+import { ITextBlockContent } from "../TextBlock/interfaces";
 import {LinkedList} from "../../../utils/LinkedList/LinkedList";
 import {LinkedListNode} from "../../../utils/LinkedList/LinkedListNode";
 
@@ -24,7 +24,7 @@ interface IEditorBlock {
   getType(): BLOCK_TYPE;
   recordHistory(): void;
   undoHistory(): void;
-  redoHistory(): void;
+  redoHistory(newHistory?: any[]): void;
 }
 
 enum BLOCK_TYPE {

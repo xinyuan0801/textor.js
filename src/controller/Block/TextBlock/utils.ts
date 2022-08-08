@@ -1,4 +1,4 @@
-import { ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./ITextBlock";
+import { ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./interfaces";
 
 interface IFirstContentInfo {
   firstContentIndex: number;

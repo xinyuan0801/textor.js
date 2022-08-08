@@ -1,4 +1,4 @@
-import {CursorPos} from "./ICursorManager";
+import {CursorPos} from "./interfaces";
 
 export function setCursorPos(textContent: HTMLElement, position: CursorPos)
 {

@@ -1,24 +1,27 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import "../style/Block.css";
 import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import { CursorPos } from "../controller/Cursor/ICursorManager";
+import isEqual from "lodash/isEqual"
+import { CursorPos } from "../controller/Cursor/interfaces";
 import {
-  HeadingTypeCode,
   ITextBlockContent,
   TEXT_BLOCK_ACTION,
   TEXT_TYPE,
-} from "../controller/Block/TextBlock/ITextBlock";
+} from "../controller/Block/TextBlock/interfaces";
 import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
 import { EditorContainer } from "../controller/Container/EditorContainer";
 import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
-import { ISelectedBlock } from "../controller/Container/IEditorContainer";
+import { ISelectedBlock } from "../controller/Container/interfaces";
 import { safeJSONParse } from "../controller/Block/utils";
 import {
   BLOCK_TYPE,
   IEditorBlock,
-} from "../controller/Block/EditorBlock/IEditorBlock";
-import { HeadingBlock } from "../controller/Block/TextBlock/HeadingBlock";
+} from "../controller/Block/EditorBlock/interfaces";
+import {
+  HeadingBlock,
+  HeadingTypeCode,
+} from "../controller/Block/TextBlock/HeadingBlock";
 import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
 
 const Block = React.memo((props) => {
@@ -32,6 +35,8 @@ const Block = React.memo((props) => {
     syncState: (HTMLElement) => void;
   } = props;
 
+  const compositionInput = useRef<boolean>(false);
+
   useEffect(() => {
     blockInfo.setFocused(CursorPos.end);
   }, []);
@@ -39,21 +44,21 @@ const Block = React.memo((props) => {
   useEffect(() => {});
 
   const savingBlockContent = (e) => {
-    const newContents = blockInfo.sync(e);
-    blockInfo.setContent(newContents);
-    console.log(
-      "saving",
-      blockInfo.getContents(),
-      (blockInfo as TextBlock).history
-    );
+    if (!compositionInput.current) {
+      const newContents = blockInfo.sync(e);
+      blockInfo.setContent(newContents);
+      console.log("saving", newContents.slice());
+    }
   };
 
-  const debounceSave = debounce(savingBlockContent, 200);
+  const debounceSave = debounce(savingBlockContent, 500);
 
-  const debounceRecordHistory = debounce(
-    (blockInfo as TextBlock).recordHistory.bind(blockInfo),
-    500
-  );
+  const debounceRecordHistory = debounce(() => {
+    if (!compositionInput.current) {
+      console.log("recording");
+      (blockInfo as TextBlock).recordHistory.bind(blockInfo)();
+    }
+  }, 500);
 
   const collectRef = (el) => {
     if (el) {
@@ -65,71 +70,101 @@ const Block = React.memo((props) => {
     e.stopPropagation();
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "Enter") {
-      if (blockInfo.getType() === BLOCK_TYPE.list) {
-        const caretPos = getSelectionCharacterOffsetWithin(e.target);
-        console.log(caretPos);
+  const handleEnterPressed = (e: KeyboardEvent) => {
+    savingBlockContent(blockInfo.ref);
+    if (blockInfo.getType() === BLOCK_TYPE.list) {
+      const caretPos = getSelectionCharacterOffsetWithin(e.target);
+      if (
+        caretPos.start === caretPos.end &&
+        caretPos.start === (blockInfo as ListBlock).getTotalContentLength()
+      ) {
+        const listBlock = blockInfo as ListBlock;
+        const listElements = listBlock.getContents();
+        const lastListElement = listElements[listElements.length - 1];
+        // if last list element is empty and hit enter again, jump out of list block
         if (
-          caretPos.start === caretPos.end &&
-          caretPos.start === (blockInfo as ListBlock).getTotalContentLength()
+          lastListElement.length === 0 ||
+          (lastListElement.length === 1 &&
+            lastListElement[0].textContent.length === 0)
         ) {
-          const listElements = (blockInfo as ListBlock).getContents();
-          const lastListElement = listElements[listElements.length - 1];
-          console.log(lastListElement);
-          if (
-            lastListElement.length === 0 ||
-            (lastListElement.length === 1 &&
-              lastListElement[0].textContent.length === 0)
-          ) {
-            e.preventDefault();
-            savingBlockContent(blockInfo.ref);
-            (blockInfo as ListBlock).setContent(
+          e.preventDefault();
+          // avoid cases when a newly list block is made
+          if (listElements.length === 1) {
+            containerInfo.deleteBlock(blockInfo.getKey());
+          } else {
+            listBlock.setContent(
               listElements.slice(0, listElements.length - 1)
             );
-            (blockInfo as ListBlock).setKey(Date.now() * Math.random());
-            const targetIndex: number = containerInfo.getBlockIndex(
-              blockInfo.getKey()
-            );
-            containerInfo.insertBlock(targetIndex + 1);
-            syncState(containerInfo.getBlocks());
+            listBlock.setKey(Date.now() * Math.random());
           }
+          const targetIndex: number = containerInfo.getBlockIndex(
+            blockInfo.getKey()
+          );
+          containerInfo.insertBlock(targetIndex + 1);
+          syncState(containerInfo.getBlocks());
+        } else {
+          // save state before new list element created and immediately after
+          blockInfo.recordHistory(
+            listElements.slice(0, listElements.length - 1)
+          );
         }
-        console.log(caretPos);
-      } else {
-        e.preventDefault();
-        savingBlockContent(blockInfo.ref);
-        const targetIndex: number = containerInfo.getBlockIndex(
-          blockInfo.getKey()
-        );
-        containerInfo.insertBlock(targetIndex + 1);
-        syncState(containerInfo.getBlocks());
       }
-    } else if (e.code === "Backspace" && blockInfo.ref.innerHTML === "") {
+      blockInfo.recordHistory();
+    } else {
       e.preventDefault();
-      savingBlockContent(blockInfo.ref);
+      const targetIndex: number = containerInfo.getBlockIndex(
+        blockInfo.getKey()
+      );
+      containerInfo.insertBlock(targetIndex + 1);
+      syncState(containerInfo.getBlocks());
+    }
+  };
+
+  const handleBlockBackspaceRemove = (e: KeyboardEvent) => {
+    console.log("doing removal");
+    e.preventDefault();
+    savingBlockContent(blockInfo.ref);
+    containerInfo.deleteBlock(blockInfo.getKey());
+    syncState(containerInfo.getBlocks());
+    // change focus if there are blocks left
+    if (containerInfo.getBlocks().length !== 0) {
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
+      // if there are upper block, set focus on that after removal, if not, set focus on lower one;
       const nextFocusedBlockIndex =
         selfIndex === 0 ? selfIndex + 1 : selfIndex - 1;
-      containerInfo.deleteBlock(blockInfo.getKey());
-      syncState(containerInfo.getBlocks());
-      if (containerInfo.getBlocks().length !== 0) {
-        containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
-      }
-    } else if (e.code === "Backspace") {
+      containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    // handle enter key action
+    if (e.code === "Enter") {
+      handleEnterPressed(e);
+    }
+    // normal backspace
+    else if (e.code === "Backspace") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       if (
         blockInfo.getType() === BLOCK_TYPE.text ||
-        blockInfo.getType() === BLOCK_TYPE.heading
+        blockInfo.getType() === BLOCK_TYPE.heading ||
+        blockInfo.getType() === BLOCK_TYPE.list
       ) {
         const textBlock = blockInfo as TextBlock;
         if (textBlock.getPrevAction() === TEXT_BLOCK_ACTION.input) {
+          console.log("prev input save");
           savingBlockContent(blockInfo.getRef());
-          textBlock.recordHistory();
+          if (!isEqual(blockInfo.getContents(), blockInfo.getCurrEra().val)) {
+            console.log("is not the same!!!!!!!!!!!!!!!!!!!!!!");
+            textBlock.recordHistory();
+          } else {
+            debounceSave(blockInfo.getRef());
+            debounceRecordHistory();
+          }
         }
         textBlock.setPrevAction(TEXT_BLOCK_ACTION.delete);
       }
+      // move block up when backspace at start of a non-empty block
       if (caretPos.start === 0 && selfIndex !== 0) {
         e.preventDefault();
         savingBlockContent(blockInfo.ref);
@@ -153,19 +188,21 @@ const Block = React.memo((props) => {
         }
         syncState(containerInfo.getBlocks());
       }
-    } else if (e.code === "ArrowDown") {
+    }
+    // caret movement when Arrow Down pressed
+    else if (e.code === "ArrowDown") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       const contentLength = (blockInfo as TextBlock).getTotalContentLength();
-      console.log(blockInfo);
       if (caretPos.end === contentLength) {
         e.preventDefault();
-        console.log("trying go down");
         const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
         if (selfIndex < containerInfo.getBlocks().length - 1) {
           containerInfo.setFocusByIndex(selfIndex + 1, CursorPos.start);
         }
       }
-    } else if (e.code === "ArrowUp") {
+    }
+    // caret movement when Arrow Up pressed
+    else if (e.code === "ArrowUp") {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       if (caretPos.start === 0) {
         e.preventDefault();
@@ -174,30 +211,46 @@ const Block = React.memo((props) => {
           containerInfo.setFocusByIndex(selfIndex - 1, CursorPos.end);
         }
       }
-    } else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
+    }
+    // redo
+    else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
       e.preventDefault();
       savingBlockContent(blockInfo.ref);
       (blockInfo as TextBlock).redoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
-    } else if (e.code === "KeyZ" && e.metaKey) {
+    }
+    // undo
+    else if (e.code === "KeyZ" && e.metaKey) {
       e.preventDefault();
       savingBlockContent(blockInfo.ref);
-      (blockInfo as TextBlock).undoHistory();
+      blockInfo.undoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
     }
-  };
-
-  const handleOnInput = () => {
-    if (
-      blockInfo.getType() === BLOCK_TYPE.text ||
-      blockInfo.getType() === BLOCK_TYPE.heading
+    // shortcuts for selection
+    else if (
+      (e.metaKey || e.altKey) &&
+      e.shiftKey &&
+      (e.code === "ArrowLeft" || e.code === "ArrowRight")
     ) {
-      (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.input);
+      setTimeout(() => {
+        handleTextSelection();
+      }, 100);
     }
-    debounceSave(blockInfo.ref);
-    debounceRecordHistory();
+    // only activate when character is input
+    else if (/^.$/u.test(e.key)) {
+      console.log("in here >???>")
+      if (
+        blockInfo.getType() === BLOCK_TYPE.text ||
+        blockInfo.getType() === BLOCK_TYPE.heading ||
+        blockInfo.getType() === BLOCK_TYPE.list
+      ) {
+        (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.input);
+      }
+      debounceSave(blockInfo.ref);
+      debounceRecordHistory();
+    }
   };
 
   const parseTextBlockContents = (
@@ -343,6 +396,14 @@ const Block = React.memo((props) => {
     (blockInfo as TextBlock).recordHistory();
   };
 
+  const handleCompositionStart = () => {
+    compositionInput.current = true;
+  };
+
+  const handleCompositionEnd = () => {
+    compositionInput.current = false;
+  };
+
   return (
     <div
       className="block-container"
@@ -352,7 +413,8 @@ const Block = React.memo((props) => {
       onMouseUp={handleTextSelection}
       onPaste={handlePaste}
       onCopy={handleCopy}
-      onInput={handleOnInput}
+      onCompositionStart={handleCompositionStart}
+      onCompositionEnd={handleCompositionEnd}
       suppressContentEditableWarning={true}
       ref={(el) => collectRef(el)}
     >

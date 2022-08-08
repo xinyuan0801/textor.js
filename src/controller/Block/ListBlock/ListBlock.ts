@@ -1,18 +1,32 @@
-import { ITextBlockContent, TEXT_STYLE_ACTION } from "../TextBlock/ITextBlock";
+import {
+  ITextBlockContent,
+  TEXT_BLOCK_ACTION,
+  TEXT_STYLE_ACTION,
+} from "../TextBlock/interfaces";
 import { EditorBlock } from "../EditorBlock/EditorBlock";
-import { CursorPos } from "../../Cursor/ICursorManager";
-import { IListBlock } from "./IListBlock";
-import {findMarkedListElement, getListElementLength} from "./utils";
+import { CursorPos } from "../../Cursor/interfaces";
+import { IListBlock } from "./interfaces";
+import { findMarkedListElement, getListElementLength } from "./utils";
 import { checkInSelection, findFirstContent } from "../TextBlock/utils";
 import { TextBlock } from "../TextBlock/TextBlock";
-import {setCursorPos} from "../../Cursor/CursorManager";
+import { setCursorPos } from "../../Cursor/CursorManager";
 
 export class ListBlock extends EditorBlock implements IListBlock {
   blockContents: ITextBlockContent[][];
+  prevAction: TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION;
 
   constructor(key, type, blockContents) {
     super(key, type, blockContents);
     this.blockContents = blockContents;
+    this.prevAction = null;
+  }
+
+  setPrevAction(newAction: TEXT_BLOCK_ACTION): void {
+    this.prevAction = newAction;
+  }
+
+  getPrevAction(): TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION {
+    return this.prevAction;
   }
 
   getContents(): ITextBlockContent[][] {
@@ -28,14 +42,12 @@ export class ListBlock extends EditorBlock implements IListBlock {
   }
 
   sync(currentContent: ChildNode): ITextBlockContent[][] {
-    console.log(currentContent.childNodes);
     const listElements = currentContent.childNodes[0];
     const newListContents = [];
     listElements.childNodes.forEach((child) => {
       const currentListSync = TextBlock.parseTextHTML(child);
       newListContents.push(currentListSync);
     });
-    console.log(newListContents);
     return newListContents;
   }
 
@@ -51,7 +63,6 @@ export class ListBlock extends EditorBlock implements IListBlock {
       firstContentStart: leftBound,
       firstContentIndex: currentContentIndex,
     } = findFirstContent(startIndex - targetContentStartIndex, currentContent);
-    console.log(targetContentStartIndex);
     while (
       currentContent[currentContentIndex] &&
       checkInSelection(
@@ -108,7 +119,15 @@ export class ListBlock extends EditorBlock implements IListBlock {
     const listContents = this.getContents();
     listContents.forEach((content) => {
       count += getListElementLength(content);
-    })
+    });
     return count;
+  }
+
+  isEmpty(): boolean {
+    console.log("on list block", this.ref);
+    const listContents = this.getContents();
+    return (
+      listContents.length === 1 && getListElementLength(listContents[0]) === 0
+    );
   }
 }
