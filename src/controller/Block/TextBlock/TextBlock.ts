@@ -220,14 +220,14 @@ export class TextBlock extends EditorBlock implements ITextBlock {
   }
 
   isEmpty(): boolean {
-    const textContents = this.getContents();
-    return textContents.length === 0;
+    // for instant check of block content, directly check dom element content
+    const blockContent = this.ref.innerText;
+    return blockContent.length === 0;
   }
 
   static parseTextHTML(currentContent: ChildNode): ITextBlockContent[] {
     const newRenderBlockContent: ITextBlockContent[] = [];
     const childNodes = currentContent.childNodes;
-    console.log(childNodes);
     childNodes.forEach((child) => {
       if (child.nodeName === "#text") {
         newRenderBlockContent.push({

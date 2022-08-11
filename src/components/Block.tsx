@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import "../style/Block.css";
 import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual"
+import isEqual from "lodash/isEqual";
 import { CursorPos } from "../controller/Cursor/interfaces";
 import {
   ITextBlockContent,
@@ -23,6 +23,7 @@ import {
   HeadingTypeCode,
 } from "../controller/Block/TextBlock/HeadingBlock";
 import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
+import {blockContentDeepClone} from "../controller/Block/EditorBlock/utils";
 
 const Block = React.memo((props) => {
   const {
@@ -43,9 +44,10 @@ const Block = React.memo((props) => {
 
   useEffect(() => {});
 
-  const savingBlockContent = (e) => {
+  const savingBlockContent = () => {
+    const blockRef = blockInfo.getRef();
     if (!compositionInput.current) {
-      const newContents = blockInfo.sync(e);
+      const newContents = blockInfo.sync(blockRef);
       blockInfo.setContent(newContents);
       console.log("saving", newContents.slice());
     }
@@ -55,8 +57,7 @@ const Block = React.memo((props) => {
 
   const debounceRecordHistory = debounce(() => {
     if (!compositionInput.current) {
-      console.log("recording");
-      (blockInfo as TextBlock).recordHistory.bind(blockInfo)();
+      blockInfo.recordHistory.bind(blockInfo)();
     }
   }, 500);
 
@@ -71,7 +72,7 @@ const Block = React.memo((props) => {
   };
 
   const handleEnterPressed = (e: KeyboardEvent) => {
-    savingBlockContent(blockInfo.ref);
+    savingBlockContent();
     if (blockInfo.getType() === BLOCK_TYPE.list) {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
       if (
@@ -121,25 +122,29 @@ const Block = React.memo((props) => {
   };
 
   const handleBlockBackspaceRemove = (e: KeyboardEvent) => {
-    console.log("doing removal");
     e.preventDefault();
-    savingBlockContent(blockInfo.ref);
-    containerInfo.deleteBlock(blockInfo.getKey());
-    syncState(containerInfo.getBlocks());
+    savingBlockContent();
     // change focus if there are blocks left
     if (containerInfo.getBlocks().length !== 0) {
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       // if there are upper block, set focus on that after removal, if not, set focus on lower one;
       const nextFocusedBlockIndex =
         selfIndex === 0 ? selfIndex + 1 : selfIndex - 1;
-      containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
+      if (containerInfo.getBlocks().length !== 1) {
+        containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
+      }
     }
+    containerInfo.deleteBlock(blockInfo.getKey());
+    syncState(containerInfo.getBlocks());
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
     // handle enter key action
     if (e.code === "Enter") {
       handleEnterPressed(e);
+    }
+    else if (e.code === "Backspace" && blockInfo.isEmpty()) {
+      handleBlockBackspaceRemove(e);
     }
     // normal backspace
     else if (e.code === "Backspace") {
@@ -152,22 +157,20 @@ const Block = React.memo((props) => {
       ) {
         const textBlock = blockInfo as TextBlock;
         if (textBlock.getPrevAction() === TEXT_BLOCK_ACTION.input) {
-          console.log("prev input save");
-          savingBlockContent(blockInfo.getRef());
+          savingBlockContent();
+          // if the content in block is different from current era, that means
           if (!isEqual(blockInfo.getContents(), blockInfo.getCurrEra().val)) {
-            console.log("is not the same!!!!!!!!!!!!!!!!!!!!!!");
             textBlock.recordHistory();
-          } else {
-            debounceSave(blockInfo.getRef());
-            debounceRecordHistory();
           }
         }
+        debounceSave();
+        debounceRecordHistory();
         textBlock.setPrevAction(TEXT_BLOCK_ACTION.delete);
       }
       // move block up when backspace at start of a non-empty block
       if (caretPos.start === 0 && selfIndex !== 0) {
         e.preventDefault();
-        savingBlockContent(blockInfo.ref);
+        savingBlockContent();
         const prevBlock = containerInfo.getBlocks()[selfIndex - 1];
         if (prevBlock.getType() !== blockInfo.getType()) {
           prevBlock.setFocused(CursorPos.end);
@@ -215,7 +218,7 @@ const Block = React.memo((props) => {
     // redo
     else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
       e.preventDefault();
-      savingBlockContent(blockInfo.ref);
+      savingBlockContent();
       (blockInfo as TextBlock).redoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
@@ -223,7 +226,10 @@ const Block = React.memo((props) => {
     // undo
     else if (e.code === "KeyZ" && e.metaKey) {
       e.preventDefault();
-      savingBlockContent(blockInfo.ref);
+      savingBlockContent();
+      if (!blockInfo.getEraAnchor()) {
+        blockInfo.recordHistory();
+      }
       blockInfo.undoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
@@ -240,7 +246,6 @@ const Block = React.memo((props) => {
     }
     // only activate when character is input
     else if (/^.$/u.test(e.key)) {
-      console.log("in here >???>")
       if (
         blockInfo.getType() === BLOCK_TYPE.text ||
         blockInfo.getType() === BLOCK_TYPE.heading ||
@@ -248,7 +253,8 @@ const Block = React.memo((props) => {
       ) {
         (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.input);
       }
-      debounceSave(blockInfo.ref);
+      blockInfo.setEraAnchor(false);
+      debounceSave();
       debounceRecordHistory();
     }
   };
@@ -339,7 +345,6 @@ const Block = React.memo((props) => {
 
   const handleTextSelection = () => {
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    console.log(caretPos);
     if (caretPos.start !== caretPos.end) {
       const selectedBlockInfo: ISelectedBlock = {
         blockKey: blockInfo.getKey(),
@@ -353,7 +358,7 @@ const Block = React.memo((props) => {
   const handleCopy = (e: React.ClipboardEvent) => {
     const plainText = window.getSelection().toString();
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    const copiedContent = (blockInfo as TextBlock).copyContent(
+    const copiedContent = blockInfo.copyContent(
       caretPos.start,
       caretPos.end
     );
@@ -369,6 +374,7 @@ const Block = React.memo((props) => {
     const plainText = e.clipboardData.getData("Text");
     const containerClipboard = containerInfo.getClipboardInfo();
     if (plainText === containerClipboard?.plainText) {
+      console.log("custom copy");
       e.preventDefault();
       const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
       const contentText = containerClipboard.textContext;
@@ -393,7 +399,7 @@ const Block = React.memo((props) => {
         syncState(containerInfo.getBlocks());
       }
     }
-    (blockInfo as TextBlock).recordHistory();
+    blockInfo.recordHistory();
   };
 
   const handleCompositionStart = () => {

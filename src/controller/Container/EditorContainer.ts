@@ -50,6 +50,7 @@ export class EditorContainer {
   }
 
   getBlockIndex(blockKey: number): number {
+    console.log(this.blocks.slice(), blockKey);
     return this.blocks.findIndex((block) => block.key === blockKey);
   }
 

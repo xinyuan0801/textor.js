@@ -13,6 +13,7 @@ abstract class EditorBlock implements IEditorBlock {
   currentEra: LinkedListNode<(ITextBlockContent | ITextBlockContent[])[]>;
   history: LinkedList<(ITextBlockContent | ITextBlockContent[])[]>;
   historyPtr: number;
+  eraAnchor: boolean;
 
   protected constructor(
     key: number,
@@ -29,7 +30,7 @@ abstract class EditorBlock implements IEditorBlock {
       blockContents
     );
     this.currentEra = this.history.head.next;
-    console.log(this.history.tail);
+    this.eraAnchor = true;
   }
 
   abstract setFocused(position: CursorPos): void;
@@ -63,11 +64,25 @@ abstract class EditorBlock implements IEditorBlock {
     }
     this.historyPtr++;
     console.log("current era", this.currentEra);
+    this.eraAnchor = true;
+  }
+
+  setEraAnchor(newAnchor: boolean) {
+    this.eraAnchor = newAnchor;
+  }
+
+  getEraAnchor(): boolean {
+    return this.eraAnchor;
   }
 
   redoHistory(): void {
     console.log("redo");
     if (this.historyPtr === this.history.length - 1) {
+      return;
+    }
+    if (!this.eraAnchor) {
+      console.log("anchoring");
+      this.eraAnchor = true;
       return;
     }
     this.historyPtr++;
@@ -79,6 +94,11 @@ abstract class EditorBlock implements IEditorBlock {
   undoHistory(): void {
     console.log("undo");
     if (this.historyPtr === 0) {
+      return;
+    }
+    if (!this.eraAnchor) {
+      console.log("anchoring");
+      this.eraAnchor = true;
       return;
     }
     this.historyPtr--;

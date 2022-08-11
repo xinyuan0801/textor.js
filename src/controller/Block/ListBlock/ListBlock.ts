@@ -124,10 +124,7 @@ export class ListBlock extends EditorBlock implements IListBlock {
   }
 
   isEmpty(): boolean {
-    console.log("on list block", this.ref);
-    const listContents = this.getContents();
-    return (
-      listContents.length === 1 && getListElementLength(listContents[0]) === 0
-    );
+    const listContents = this.ref.innerText;
+    return listContents.length === 0;
   }
 }

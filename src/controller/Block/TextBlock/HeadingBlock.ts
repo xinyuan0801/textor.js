@@ -51,6 +51,12 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
     return newRenderBlockContent;
   }
 
+  isEmpty(): boolean {
+    // for instant check of block content, directly check dom element content
+    const blockContent = this.ref.innerHTML;
+    return blockContent === "<h1><br></h1>";
+  }
+
   setContent(blockContents: ITextBlockContent[]) {
     if (blockContents.length === 0) {
       super.setContent(blockContents);
