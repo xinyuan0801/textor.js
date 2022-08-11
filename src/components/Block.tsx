@@ -23,7 +23,7 @@ import {
   HeadingTypeCode,
 } from "../controller/Block/TextBlock/HeadingBlock";
 import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
-import {blockContentDeepClone} from "../controller/Block/EditorBlock/utils";
+import { blockContentDeepClone } from "../controller/Block/EditorBlock/utils";
 
 const Block = React.memo((props) => {
   const {
@@ -142,8 +142,7 @@ const Block = React.memo((props) => {
     // handle enter key action
     if (e.code === "Enter") {
       handleEnterPressed(e);
-    }
-    else if (e.code === "Backspace" && blockInfo.isEmpty()) {
+    } else if (e.code === "Backspace" && blockInfo.isEmpty()) {
       handleBlockBackspaceRemove(e);
     }
     // normal backspace
@@ -358,10 +357,7 @@ const Block = React.memo((props) => {
   const handleCopy = (e: React.ClipboardEvent) => {
     const plainText = window.getSelection().toString();
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    const copiedContent = blockInfo.copyContent(
-      caretPos.start,
-      caretPos.end
-    );
+    const copiedContent = blockInfo.copyContent(caretPos.start, caretPos.end);
     const copyTextInfo = { textContent: copiedContent, key: "lovetiktok" };
     const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
     containerInfo.setClipboardInfo({
@@ -373,31 +369,29 @@ const Block = React.memo((props) => {
   const handlePaste = (e: React.ClipboardEvent) => {
     const plainText = e.clipboardData.getData("Text");
     const containerClipboard = containerInfo.getClipboardInfo();
-    if (plainText === containerClipboard?.plainText) {
-      console.log("custom copy");
-      e.preventDefault();
-      const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-      const contentText = containerClipboard.textContext;
-      const pasteContent: { key: string; textContent: ITextBlockContent[] } =
-        safeJSONParse(contentText);
-      if (pasteContent && pasteContent.key === "lovetiktok") {
-        (blockInfo as TextBlock).insertBlockContents(
-          pasteContent.textContent,
-          caretPos.start
-        );
-        blockInfo.setKey(Date.now());
-        syncState(containerInfo.getBlocks());
-      } else {
-        const newPlainContent: ITextBlockContent[] = [
-          { textContent: contentText, textType: TEXT_TYPE.normal },
-        ];
-        (blockInfo as TextBlock).insertBlockContents(
-          newPlainContent,
-          caretPos.start
-        );
-        blockInfo.setKey(Date.now());
-        syncState(containerInfo.getBlocks());
-      }
+    console.log("custom copy");
+    e.preventDefault();
+    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+    const contentText = containerClipboard?.textContext || plainText;
+    const pasteContent: { key: string; textContent: ITextBlockContent[] } =
+      safeJSONParse(contentText) || {};
+    if (pasteContent && pasteContent.key === "lovetiktok") {
+      (blockInfo as TextBlock).insertBlockContents(
+        pasteContent.textContent,
+        caretPos.start
+      );
+      blockInfo.setKey(Date.now());
+      syncState(containerInfo.getBlocks());
+    } else {
+      const newPlainContent: ITextBlockContent[] = [
+        { textContent: contentText, textType: TEXT_TYPE.normal },
+      ];
+      (blockInfo as TextBlock).insertBlockContents(
+        newPlainContent,
+        caretPos.start
+      );
+      blockInfo.setKey(Date.now());
+      syncState(containerInfo.getBlocks());
     }
     blockInfo.recordHistory();
   };
