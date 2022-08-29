@@ -1,20 +1,9 @@
-import { EditorBlock } from "../EditorBlock/EditorBlock";
-import {
-  checkInSelection,
-  findFirstContent,
-  generateNewContent,
-  normalTextConverter,
-} from "./utils";
-import { setCursorPos } from "../../Cursor/CursorManager";
-import { CursorPos } from "../../Cursor/interfaces";
-import {
-  ITextBlock,
-  ITextBlockContent,
-  TEXT_BLOCK_ACTION,
-  TEXT_STYLE_ACTION,
-  TEXT_TYPE,
-} from "./interfaces";
-import { LinkedList } from "../../../utils/LinkedList/LinkedList";
+import {EditorBlock} from "../EditorBlock/EditorBlock";
+import {checkInSelection, findFirstContent, generateNewContent, normalTextConverter,} from "./utils";
+import {setCursorPos} from "../../Cursor/CursorManager";
+import {CursorPos} from "../../Cursor/interfaces";
+import {ITextBlock, ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_STYLE_ACTION, TEXT_TYPE,} from "./interfaces";
+import {LinkedList} from "../../../utils/LinkedList/LinkedList";
 
 export class TextBlock extends EditorBlock implements ITextBlock {
   prevAction: TEXT_BLOCK_ACTION;
@@ -25,7 +14,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     this.history = new LinkedList<ITextBlockContent[]>(blockContents);
     this.currentEra = this.history.head.next;
     this.historyPtr = 0;
-    this.prevAction = null;
+    this.prevAction = TEXT_BLOCK_ACTION.origin;
     this.blockContents = blockContents;
   }
 
@@ -138,6 +127,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     endIndex: number
   ): void {
     const currentContent = this.getContents();
+    console.log(currentContent.slice());
     let {
       firstContentStart: leftBound,
       firstContentIndex: currentContentIndex,
@@ -164,6 +154,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
         blockContents
       );
       this.setContent(newBlockContent);
+      console.log(newBlockContent);
       if (startIndex <= leftBound && rightBound <= endIndex) {
         console.log("+1 loader");
         currentContentIndex++;
@@ -183,7 +174,9 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       }
       leftBound += currentContentOriginLength;
     }
+    console.log(this.blockContents);
     this.recordHistory();
+    this.setPrevAction(TEXT_BLOCK_ACTION.origin);
   }
 
   insertBlockContents(newContents: ITextBlockContent[], index: number): void {

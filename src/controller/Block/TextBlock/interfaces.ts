@@ -4,6 +4,7 @@ import { HeadingTypeCode } from "./HeadingBlock";
 enum TEXT_BLOCK_ACTION {
   input = "input",
   delete = "delete",
+  origin = "origin"
 }
 
 interface ITextBlock extends Omit<IEditorBlock, "blockContents" | "sync"> {

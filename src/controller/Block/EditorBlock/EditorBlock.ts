@@ -1,9 +1,9 @@
-import { CursorPos } from "../../Cursor/interfaces";
-import { BLOCK_TYPE, IEditorBlock } from "./interfaces";
-import { ITextBlockContent } from "../TextBlock/interfaces";
-import { LinkedList } from "../../../utils/LinkedList/LinkedList";
-import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
-import { blockContentDeepClone } from "./utils";
+import {CursorPos} from "../../Cursor/interfaces";
+import {BLOCK_STATUS, BLOCK_TYPE, IEditorBlock} from "./interfaces";
+import {ITextBlockContent} from "../TextBlock/interfaces";
+import {LinkedList} from "../../../utils/LinkedList/LinkedList";
+import {LinkedListNode} from "../../../utils/LinkedList/LinkedListNode";
+import {blockContentDeepClone} from "./utils";
 
 abstract class EditorBlock implements IEditorBlock {
   key: number;
@@ -13,7 +13,6 @@ abstract class EditorBlock implements IEditorBlock {
   currentEra: LinkedListNode<(ITextBlockContent | ITextBlockContent[])[]>;
   history: LinkedList<(ITextBlockContent | ITextBlockContent[])[]>;
   historyPtr: number;
-  eraAnchor: boolean;
 
   protected constructor(
     key: number,
@@ -29,8 +28,8 @@ abstract class EditorBlock implements IEditorBlock {
     this.history = new LinkedList<(ITextBlockContent | ITextBlockContent[])[]>(
       blockContents
     );
+    console.log(this.history);
     this.currentEra = this.history.head.next;
-    this.eraAnchor = true;
   }
 
   abstract setFocused(position: CursorPos): void;
@@ -43,6 +42,11 @@ abstract class EditorBlock implements IEditorBlock {
   ): ITextBlockContent[];
 
   abstract isEmpty(): boolean;
+
+  saveCurrentContent() {
+    const newContents = this.sync(this.ref);
+    this.setContent(newContents);
+  }
 
   recordHistory(newHistory?: any[]): void {
     const currentHistory =
@@ -64,25 +68,12 @@ abstract class EditorBlock implements IEditorBlock {
     }
     this.historyPtr++;
     console.log("current era", this.currentEra);
-    this.eraAnchor = true;
   }
 
-  setEraAnchor(newAnchor: boolean) {
-    this.eraAnchor = newAnchor;
-  }
-
-  getEraAnchor(): boolean {
-    return this.eraAnchor;
-  }
 
   redoHistory(): void {
     console.log("redo");
     if (this.historyPtr === this.history.length - 1) {
-      return;
-    }
-    if (!this.eraAnchor) {
-      console.log("anchoring");
-      this.eraAnchor = true;
       return;
     }
     this.historyPtr++;
@@ -94,11 +85,6 @@ abstract class EditorBlock implements IEditorBlock {
   undoHistory(): void {
     console.log("undo");
     if (this.historyPtr === 0) {
-      return;
-    }
-    if (!this.eraAnchor) {
-      console.log("anchoring");
-      this.eraAnchor = true;
       return;
     }
     this.historyPtr--;

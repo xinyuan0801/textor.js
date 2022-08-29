@@ -34,6 +34,12 @@ enum BLOCK_TYPE {
   image, // image text
 }
 
+enum BLOCK_STATUS {
+  origin,
+  incremental, // incremental
+  decremental, // incremental
+}
 
 
-export { IEditorBlock, BLOCK_TYPE };
+
+export { IEditorBlock, BLOCK_TYPE, BLOCK_STATUS };

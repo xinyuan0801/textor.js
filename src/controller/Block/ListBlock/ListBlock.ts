@@ -34,6 +34,7 @@ export class ListBlock extends EditorBlock implements IListBlock {
   }
 
   copyContent(startIndex?: number, endIndex?: number): ITextBlockContent[] {
+
     return [];
   }
 
@@ -56,6 +57,7 @@ export class ListBlock extends EditorBlock implements IListBlock {
     startIndex: number,
     endIndex: number
   ): void {
+    console.log(this.getContents());
     const { targetIndex: targetListElement, targetContentStartIndex } =
       findMarkedListElement(this.getContents(), startIndex);
     const currentContent = this.getContents()[targetListElement];
@@ -111,6 +113,7 @@ export class ListBlock extends EditorBlock implements IListBlock {
       }
       leftBound += currentContentOriginLength;
     }
+    console.log(this.getContents().slice());
     this.recordHistory();
   }
 

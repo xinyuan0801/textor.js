@@ -1,29 +1,17 @@
-import React, { useEffect, useRef } from "react";
+import React, {useEffect, useRef} from "react";
 import "../style/Block.css";
-import { getSelectionCharacterOffsetWithin } from "../controller/Cursor/utilts";
+import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import isEqual from "lodash/isEqual";
-import { CursorPos } from "../controller/Cursor/interfaces";
-import {
-  ITextBlockContent,
-  TEXT_BLOCK_ACTION,
-  TEXT_TYPE,
-} from "../controller/Block/TextBlock/interfaces";
-import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
-import { EditorContainer } from "../controller/Container/EditorContainer";
-import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
-import { ISelectedBlock } from "../controller/Container/interfaces";
-import { safeJSONParse } from "../controller/Block/utils";
-import {
-  BLOCK_TYPE,
-  IEditorBlock,
-} from "../controller/Block/EditorBlock/interfaces";
-import {
-  HeadingBlock,
-  HeadingTypeCode,
-} from "../controller/Block/TextBlock/HeadingBlock";
-import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
-import { blockContentDeepClone } from "../controller/Block/EditorBlock/utils";
+import {CursorPos} from "../controller/Cursor/interfaces";
+import {ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_TYPE,} from "../controller/Block/TextBlock/interfaces";
+import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
+import {EditorContainer} from "../controller/Container/EditorContainer";
+import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
+import {ISelectedBlock} from "../controller/Container/interfaces";
+import {safeJSONParse} from "../controller/Block/utils";
+import {BLOCK_TYPE, IEditorBlock,} from "../controller/Block/EditorBlock/interfaces";
+import {HeadingBlock, HeadingTypeCode,} from "../controller/Block/TextBlock/HeadingBlock";
+import {ListBlock} from "../controller/Block/ListBlock/ListBlock";
 
 const Block = React.memo((props) => {
   const {
@@ -45,21 +33,13 @@ const Block = React.memo((props) => {
   useEffect(() => {});
 
   const savingBlockContent = () => {
-    const blockRef = blockInfo.getRef();
     if (!compositionInput.current) {
-      const newContents = blockInfo.sync(blockRef);
-      blockInfo.setContent(newContents);
-      console.log("saving", newContents.slice());
+      blockInfo.saveCurrentContent();
     }
+    console.log("saved");
   };
 
   const debounceSave = debounce(savingBlockContent, 500);
-
-  const debounceRecordHistory = debounce(() => {
-    if (!compositionInput.current) {
-      blockInfo.recordHistory.bind(blockInfo)();
-    }
-  }, 500);
 
   const collectRef = (el) => {
     if (el) {
@@ -75,6 +55,7 @@ const Block = React.memo((props) => {
     savingBlockContent();
     if (blockInfo.getType() === BLOCK_TYPE.list) {
       const caretPos = getSelectionCharacterOffsetWithin(e.target);
+      // press enter at end of a list element
       if (
         caretPos.start === caretPos.end &&
         caretPos.start === (blockInfo as ListBlock).getTotalContentLength()
@@ -103,8 +84,10 @@ const Block = React.memo((props) => {
           );
           containerInfo.insertBlock(targetIndex + 1);
           syncState(containerInfo.getBlocks());
-        } else {
-          // save state before new list element created and immediately after
+        }
+        // follow native behaviour when enter create a new list element
+        else {
+          // record state for list block before a new list element if created
           blockInfo.recordHistory(
             listElements.slice(0, listElements.length - 1)
           );
@@ -123,7 +106,6 @@ const Block = React.memo((props) => {
 
   const handleBlockBackspaceRemove = (e: KeyboardEvent) => {
     e.preventDefault();
-    savingBlockContent();
     // change focus if there are blocks left
     if (containerInfo.getBlocks().length !== 0) {
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
@@ -155,15 +137,16 @@ const Block = React.memo((props) => {
         blockInfo.getType() === BLOCK_TYPE.list
       ) {
         const textBlock = blockInfo as TextBlock;
-        if (textBlock.getPrevAction() === TEXT_BLOCK_ACTION.input) {
-          savingBlockContent();
-          // if the content in block is different from current era, that means
-          if (!isEqual(blockInfo.getContents(), blockInfo.getCurrEra().val)) {
-            textBlock.recordHistory();
-          }
+        // if new type of action, save the current state
+        if (textBlock.getPrevAction() !== TEXT_BLOCK_ACTION.delete) {
+          textBlock.saveCurrentContent();
+          textBlock.recordHistory();
+          // // if the content in block is different from current era, that means
+          // if (!isEqual(blockInfo.getContents(), blockInfo.getCurrEra().val)) {
+          //   textBlock.recordHistory();
+          // }
         }
         debounceSave();
-        debounceRecordHistory();
         textBlock.setPrevAction(TEXT_BLOCK_ACTION.delete);
       }
       // move block up when backspace at start of a non-empty block
@@ -218,7 +201,7 @@ const Block = React.memo((props) => {
     else if (e.code === "KeyZ" && e.metaKey && e.shiftKey) {
       e.preventDefault();
       savingBlockContent();
-      (blockInfo as TextBlock).redoHistory();
+      blockInfo.redoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
     }
@@ -226,9 +209,11 @@ const Block = React.memo((props) => {
     else if (e.code === "KeyZ" && e.metaKey) {
       e.preventDefault();
       savingBlockContent();
-      if (!blockInfo.getEraAnchor()) {
+      if ((blockInfo as TextBlock).getPrevAction() !== TEXT_BLOCK_ACTION.origin) {
+        blockInfo.saveCurrentContent();
         blockInfo.recordHistory();
       }
+      (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.origin);
       blockInfo.undoHistory();
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
@@ -250,11 +235,14 @@ const Block = React.memo((props) => {
         blockInfo.getType() === BLOCK_TYPE.heading ||
         blockInfo.getType() === BLOCK_TYPE.list
       ) {
+        // new type of action happened, record current state for undo redo
+        if ((blockInfo as TextBlock).getPrevAction() === TEXT_BLOCK_ACTION.delete) {
+          blockInfo.saveCurrentContent();
+          (blockInfo as TextBlock).recordHistory();
+        }
         (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.input);
       }
-      blockInfo.setEraAnchor(false);
       debounceSave();
-      debounceRecordHistory();
     }
   };
 
@@ -393,7 +381,6 @@ const Block = React.memo((props) => {
       blockInfo.setKey(Date.now());
       syncState(containerInfo.getBlocks());
     }
-    blockInfo.recordHistory();
   };
 
   const handleCompositionStart = () => {
