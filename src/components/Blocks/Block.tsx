@@ -1,27 +1,43 @@
-import React, {useEffect, useRef} from "react";
-import "../style/Block.css";
-import {getSelectionCharacterOffsetWithin} from "../controller/Cursor/utilts";
+import React, { useEffect, useRef } from "react";
+import "../../style/Block.css";
+import { getSelectionCharacterOffsetWithin } from "../../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
-import {CursorPos} from "../controller/Cursor/interfaces";
-import {ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_TYPE,} from "../controller/Block/TextBlock/interfaces";
-import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
-import {EditorContainer} from "../controller/Container/EditorContainer";
-import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
-import {ISelectedBlock} from "../controller/Container/interfaces";
-import {safeJSONParse} from "../controller/Block/utils";
-import {BLOCK_TYPE, IEditorBlock,} from "../controller/Block/EditorBlock/interfaces";
-import {HeadingBlock, HeadingTypeCode,} from "../controller/Block/TextBlock/HeadingBlock";
-import {ListBlock} from "../controller/Block/ListBlock/ListBlock";
+import { CursorPos } from "../../controller/Cursor/interfaces";
+import {
+  ITextBlockContent,
+  TEXT_BLOCK_ACTION,
+  TEXT_TYPE,
+} from "../../controller/Block/TextBlock/interfaces";
+import { EditorBlock } from "../../controller/Block/EditorBlock/EditorBlock";
+import { EditorContainer } from "../../controller/Container/EditorContainer";
+import { TextBlock } from "../../controller/Block/TextBlock/TextBlock";
+import { ISelectedBlock } from "../../controller/Container/interfaces";
+import { safeJSONParse } from "../../controller/Block/utils";
+import {
+  BLOCK_TYPE,
+  IEditorBlock,
+} from "../../controller/Block/EditorBlock/interfaces";
+import {
+  HeadingBlock,
+  HeadingTypeCode,
+} from "../../controller/Block/TextBlock/HeadingBlock";
+import { ListBlock } from "../../controller/Block/ListBlock/ListBlock";
 
 const Block = React.memo((props) => {
   const {
     blockInfo,
     containerInfo,
     syncState,
+    renderContent,
+    enterHandler,
+    outerContentEditable = true,
   }: {
     blockInfo: EditorBlock;
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
+    renderContent: (EditorBlock) => HTMLElement;
+    enterHandler: (e: KeyboardEvent) => void;
+    outerContentEditable: boolean;
   } = props;
 
   const compositionInput = useRef<boolean>(false);
@@ -29,8 +45,6 @@ const Block = React.memo((props) => {
   useEffect(() => {
     blockInfo.setFocused(CursorPos.end);
   }, []);
-
-  useEffect(() => {});
 
   const savingBlockContent = () => {
     if (!compositionInput.current) {
@@ -52,50 +66,12 @@ const Block = React.memo((props) => {
   };
 
   const handleEnterPressed = (e: KeyboardEvent) => {
-    savingBlockContent();
-    if (blockInfo.getType() === BLOCK_TYPE.list) {
-      const caretPos = getSelectionCharacterOffsetWithin(e.target);
-      // press enter at end of a list element
-      if (
-        caretPos.start === caretPos.end &&
-        caretPos.start === (blockInfo as ListBlock).getTotalContentLength()
-      ) {
-        const listBlock = blockInfo as ListBlock;
-        const listElements = listBlock.getContents();
-        const lastListElement = listElements[listElements.length - 1];
-        // if last list element is empty and hit enter again, jump out of list block
-        if (
-          lastListElement.length === 0 ||
-          (lastListElement.length === 1 &&
-            lastListElement[0].textContent.length === 0)
-        ) {
-          e.preventDefault();
-          // avoid cases when a newly list block is made
-          if (listElements.length === 1) {
-            containerInfo.deleteBlock(blockInfo.getKey());
-          } else {
-            listBlock.setContent(
-              listElements.slice(0, listElements.length - 1)
-            );
-            listBlock.setKey(Date.now() * Math.random());
-          }
-          const targetIndex: number = containerInfo.getBlockIndex(
-            blockInfo.getKey()
-          );
-          containerInfo.insertBlock(targetIndex + 1);
-          syncState(containerInfo.getBlocks());
-        }
-        // follow native behaviour when enter create a new list element
-        else {
-          // record state for list block before a new list element if created
-          blockInfo.recordHistory(
-            listElements.slice(0, listElements.length - 1)
-          );
-        }
-      }
-      blockInfo.recordHistory();
+    if (enterHandler) {
+      enterHandler(e);
     } else {
       e.preventDefault();
+      savingBlockContent();
+      console.log("cross");
       const targetIndex: number = containerInfo.getBlockIndex(
         blockInfo.getKey()
       );
@@ -122,7 +98,7 @@ const Block = React.memo((props) => {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     // handle enter key action
-    if (e.code === "Enter") {
+    if (e.code === "Enter" && !compositionInput.current) {
       handleEnterPressed(e);
     } else if (e.code === "Backspace" && blockInfo.isEmpty()) {
       handleBlockBackspaceRemove(e);
@@ -250,90 +226,6 @@ const Block = React.memo((props) => {
     }
   };
 
-  const parseTextBlockContents = (
-    contents: ITextBlockContent[]
-  ): HTMLElement[] => {
-    return contents.map((content: ITextBlockContent, index: number) => {
-      // no annotation support for link text
-      if (content.linkHref) {
-        return (
-          <a
-            href={content.linkHref}
-            contentEditable={false}
-            key={Date.now() + index}
-          >
-            {content.textContent}
-          </a>
-        );
-      }
-      let baseElement = content.textContent;
-      baseElement = content.isUnderline ? (
-        <u key={Date.now() * Math.random() + "underline"}>{baseElement}</u>
-      ) : (
-        baseElement
-      );
-      baseElement = content.isBold ? (
-        <b key={Date.now() * Math.random() + "bold"}>{baseElement}</b>
-      ) : (
-        baseElement
-      );
-      baseElement = content.isMarked ? (
-        <mark key={Date.now() * Math.random() + "marked"}>{baseElement}</mark>
-      ) : (
-        baseElement
-      );
-      return baseElement;
-    });
-  };
-
-  const parseHeadingBlockContents = (
-    contents: ITextBlockContent[]
-  ): HTMLElement[] | undefined => {
-    const headingBlockInfo = blockInfo as HeadingBlock;
-    const headingContent = contents[0];
-    const baseElement = headingContent.textContent;
-    const headingSize = headingBlockInfo.getHeadingType();
-    if (headingSize === HeadingTypeCode.one) {
-      return (
-        <h1 key={Date.now() * Math.random() + "heading1"}>{baseElement}</h1>
-      );
-    } else if (headingSize === HeadingTypeCode.two) {
-      return (
-        <h2 key={Date.now() * Math.random() + "heading1"}>{baseElement}</h2>
-      );
-    } else if (headingSize === HeadingTypeCode.three) {
-      return (
-        <h3 key={Date.now() * Math.random() + "heading1"}>{baseElement}</h3>
-      );
-    }
-  };
-
-  const parseListElement = (content: ITextBlockContent[], index: number) => {
-    return <li key={Date.now() + index}>{parseTextBlockContents(content)}</li>;
-  };
-
-  const parseListBlock = (
-    listContents: ITextBlockContent[][]
-  ): HTMLElement[] | undefined => {
-    return <ul>{listContents.map(parseListElement)}</ul>;
-  };
-
-  const parseBlockContent = (
-    blockInfo: IEditorBlock
-  ): HTMLElement[] | string[] => {
-    const blockType = blockInfo.getType();
-    if (blockType === BLOCK_TYPE.text) {
-      const textBlockContent = (blockInfo as TextBlock).getContents();
-      return parseTextBlockContents(textBlockContent);
-    } else if (blockType === BLOCK_TYPE.heading) {
-      const headingBlockContent = (blockInfo as HeadingBlock).getContents();
-      return parseHeadingBlockContents(headingBlockContent);
-    } else if (blockType === BLOCK_TYPE.list) {
-      const listContents = (blockInfo as ListBlock).getContents();
-      return parseListBlock(listContents);
-    }
-  };
-
   const handleTextSelection = () => {
     const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
     if (caretPos.start !== caretPos.end) {
@@ -401,12 +293,12 @@ const Block = React.memo((props) => {
       blockInfo.recordHistory();
       (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.origin);
     }
-  }
+  };
 
   return (
     <div
       className="block-container"
-      contentEditable={true}
+      contentEditable={outerContentEditable}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       onMouseUp={handleTextSelection}
@@ -418,7 +310,7 @@ const Block = React.memo((props) => {
       suppressContentEditableWarning={true}
       ref={(el) => collectRef(el)}
     >
-      {parseBlockContent(blockInfo)}
+      {renderContent(blockInfo)}
     </div>
   );
 });

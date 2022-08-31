@@ -1,19 +1,19 @@
-import React, { useCallback, useState } from "react";
+import React, {useCallback, useState} from "react";
 
-import { Block } from "./Block";
-import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
+import {Block} from "./Blocks/Block";
+import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
 
 import "../style/container.css";
-import { useGenerateContainer } from "./ContainerHooks";
-import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
-import {
-  TEXT_STYLE_ACTION,
-  TEXT_TYPE,
-} from "../controller/Block/TextBlock/interfaces";
-import { BLOCK_TYPE } from "../controller/Block/EditorBlock/interfaces";
-import { CursorPos } from "../controller/Cursor/interfaces";
-import {HeadingBlock, HeadingTypeCode} from "../controller/Block/TextBlock/HeadingBlock";
-import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
+import {useGenerateContainer} from "./ContainerHooks";
+import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
+import {TEXT_STYLE_ACTION, TEXT_TYPE,} from "../controller/Block/TextBlock/interfaces";
+import {BLOCK_TYPE} from "../controller/Block/EditorBlock/interfaces";
+import {CursorPos} from "../controller/Cursor/interfaces";
+import {HeadingBlock, HeadingTypeCode,} from "../controller/Block/TextBlock/HeadingBlock";
+import {ListBlock} from "../controller/Block/ListBlock/ListBlock";
+import {ListBlockComponent} from "./Blocks/ListBlock/ListBlockComponent";
+import {TextBlockComponent} from "./Blocks/TextBlock/TextBlockComponent";
+import {HeadingBlockComponent} from "./Blocks/HeadingBlock/HeadingBlockComponent";
 
 function Container() {
   const containerInstance = useGenerateContainer();
@@ -79,6 +79,41 @@ function Container() {
     const blocksArray = containerInstance.current.getBlocks().slice();
     // due to useRef, manually calling rerendering
     setBlockArray(blocksArray);
+  };
+
+  const renderBlock = (blockInstance: EditorBlock) => {
+    const blockType = blockInstance.getType();
+    if (blockType === BLOCK_TYPE.text) {
+      return (
+        <TextBlockComponent
+          key={blockInstance.key}
+          blockKey={blockInstance.key}
+          blockInfo={blockInstance}
+          containerInfo={containerInstance.current}
+          syncState={syncBlockState}
+        ></TextBlockComponent>
+      );
+    } else if (blockType === BLOCK_TYPE.list) {
+      return (
+        <ListBlockComponent
+          key={blockInstance.key}
+          blockKey={blockInstance.key}
+          blockInfo={blockInstance}
+          containerInfo={containerInstance.current}
+          syncState={syncBlockState}
+        ></ListBlockComponent>
+      );
+    } else if (blockType === BLOCK_TYPE.heading) {
+      return (
+        <HeadingBlockComponent
+          key={blockInstance.key}
+          blockKey={blockInstance.key}
+          blockInfo={blockInstance}
+          containerInfo={containerInstance.current}
+          syncState={syncBlockState}
+        ></HeadingBlockComponent>
+      )
+    }
   };
 
   return (
@@ -157,17 +192,7 @@ function Container() {
         删除下划线
       </button>
       <div className="container" onClick={handleClickContainer}>
-        {blockArray.map((block) => {
-          return (
-            <Block
-              key={block.key}
-              blockKey={block.key}
-              blockInfo={block}
-              containerInfo={containerInstance.current}
-              syncState={syncBlockState}
-            />
-          );
-        })}
+        {blockArray.map(renderBlock)}
       </div>
     </>
   );
