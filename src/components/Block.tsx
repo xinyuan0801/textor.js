@@ -209,7 +209,9 @@ const Block = React.memo((props) => {
     else if (e.code === "KeyZ" && e.metaKey) {
       e.preventDefault();
       savingBlockContent();
-      if ((blockInfo as TextBlock).getPrevAction() !== TEXT_BLOCK_ACTION.origin) {
+      if (
+        (blockInfo as TextBlock).getPrevAction() !== TEXT_BLOCK_ACTION.origin
+      ) {
         blockInfo.saveCurrentContent();
         blockInfo.recordHistory();
       }
@@ -236,7 +238,9 @@ const Block = React.memo((props) => {
         blockInfo.getType() === BLOCK_TYPE.list
       ) {
         // new type of action happened, record current state for undo redo
-        if ((blockInfo as TextBlock).getPrevAction() === TEXT_BLOCK_ACTION.delete) {
+        if (
+          (blockInfo as TextBlock).getPrevAction() === TEXT_BLOCK_ACTION.delete
+        ) {
           blockInfo.saveCurrentContent();
           (blockInfo as TextBlock).recordHistory();
         }
@@ -391,6 +395,14 @@ const Block = React.memo((props) => {
     compositionInput.current = false;
   };
 
+  const handleBlur = () => {
+    savingBlockContent();
+    if ((blockInfo as TextBlock).getPrevAction() !== TEXT_BLOCK_ACTION.origin) {
+      blockInfo.recordHistory();
+      (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.origin);
+    }
+  }
+
   return (
     <div
       className="block-container"
@@ -400,6 +412,7 @@ const Block = React.memo((props) => {
       onMouseUp={handleTextSelection}
       onPaste={handlePaste}
       onCopy={handleCopy}
+      onBlur={handleBlur}
       onCompositionStart={handleCompositionStart}
       onCompositionEnd={handleCompositionEnd}
       suppressContentEditableWarning={true}

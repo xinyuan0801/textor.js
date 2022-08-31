@@ -67,7 +67,7 @@ abstract class EditorBlock implements IEditorBlock {
       this.currentEra = this.currentEra.next;
     }
     this.historyPtr++;
-    console.log("current era", this.currentEra);
+    console.log("recorded", this.currentEra);
   }
 
 
