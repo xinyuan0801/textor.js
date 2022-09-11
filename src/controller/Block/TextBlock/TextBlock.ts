@@ -16,6 +16,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     this.historyPtr = 0;
     this.prevAction = TEXT_BLOCK_ACTION.origin;
     this.blockContents = blockContents;
+    this.nativeCopy = false;
   }
 
   setFocused(position: CursorPos): void {
@@ -155,21 +156,18 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       );
       this.setContent(newBlockContent);
       console.log(newBlockContent);
-      if (startIndex <= leftBound && rightBound <= endIndex) {
-        console.log("+1 loader");
-        currentContentIndex++;
-      } else if (
+      if (
         leftBound <= startIndex &&
         rightBound <= endIndex &&
         rightBound >= startIndex
       ) {
-        console.log("+2 loaded");
+        console.log("+2");
         currentContentIndex += 2;
       } else if (leftBound <= startIndex && rightBound >= endIndex) {
-        console.log("+3 loaded");
+        console.log("+3");
         currentContentIndex += 3;
       } else {
-        console.log("+1 loaded");
+        console.log("+1");
         currentContentIndex++;
       }
       leftBound += currentContentOriginLength;

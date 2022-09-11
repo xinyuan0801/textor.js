@@ -6,19 +6,19 @@ import {LinkedListNode} from "../../../utils/LinkedList/LinkedListNode";
 interface IEditorBlock {
   key: number;
   type: BLOCK_TYPE;
-  blockContents: (ITextBlockContent | ITextBlockContent[])[];
+  blockContents: any;
   ref: HTMLElement;
-  history: LinkedList<(ITextBlockContent | ITextBlockContent[])[]>;
+  history: LinkedList<any>;
   historyPtr: number;
-  currentEra: LinkedListNode<(ITextBlockContent | ITextBlockContent[])[]>;
+  currentEra: LinkedListNode<any>;
 
   setFocused(position: CursorPos): void;
   sync(currentContent: ChildNode): any;
   getRef(): HTMLElement;
   setRef(blockRef: HTMLElement): void;
-  getContents(): (ITextBlockContent | ITextBlockContent[])[];
-  setContent(blockContents: ITextBlockContent[]): void;
-  copyContent(startIndex?: number, endIndex?: number): ITextBlockContent[];
+  getContents(): any;
+  setContent(blockContents: any): void;
+  copyContent(startIndex?: number, endIndex?: number): any;
   getKey(): number;
   setKey(newKey: number);
   getType(): BLOCK_TYPE;
@@ -31,15 +31,7 @@ enum BLOCK_TYPE {
   text, // text with different styles
   heading, // heading text
   list, // list text
-  image, // image text
+  image, // image
 }
 
-enum BLOCK_STATUS {
-  origin,
-  incremental, // incremental
-  decremental, // incremental
-}
-
-
-
-export { IEditorBlock, BLOCK_TYPE, BLOCK_STATUS };
+export { IEditorBlock, BLOCK_TYPE };

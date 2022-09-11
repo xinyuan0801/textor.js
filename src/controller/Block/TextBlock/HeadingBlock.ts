@@ -22,6 +22,7 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
   constructor(key, type, blockContents, HeadingTypeCode) {
     super(key, type, blockContents);
     this.headingType = HeadingTypeCode;
+    this.nativeCopy = false;
   }
 
   getHeadingType(): HeadingTypeCode {

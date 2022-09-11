@@ -60,7 +60,7 @@ const ListBlockComponent = (props) => {
   const parseListBlock = (
     listContents: ITextBlockContent[][]
   ): HTMLElement[] | undefined => {
-    return <ul contentEditable={true}>{listContents.map(parseListElement)}</ul>;
+    return <ul contentEditable={true} suppressContentEditableWarning={true}>{listContents.map(parseListElement)}</ul>;
   };
 
   const handleEnterPressed = (e: KeyboardEvent) => {
@@ -85,7 +85,7 @@ const ListBlockComponent = (props) => {
         e.preventDefault();
         // avoid cases when a newly list block is made
         if (listElements.length === 1) {
-          containerInfo.deleteBlock(blockInfo.getKey());
+          containerInfo.deleteBlockByKey(blockInfo.getKey());
         } else {
           listBlock.setContent(
             listElements.slice(0, listElements.length - 1)

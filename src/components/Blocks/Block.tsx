@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../../style/Block.css";
 import { getSelectionCharacterOffsetWithin } from "../../controller/Cursor/utilts";
 import debounce from "lodash/debounce";
@@ -13,15 +13,7 @@ import { EditorContainer } from "../../controller/Container/EditorContainer";
 import { TextBlock } from "../../controller/Block/TextBlock/TextBlock";
 import { ISelectedBlock } from "../../controller/Container/interfaces";
 import { safeJSONParse } from "../../controller/Block/utils";
-import {
-  BLOCK_TYPE,
-  IEditorBlock,
-} from "../../controller/Block/EditorBlock/interfaces";
-import {
-  HeadingBlock,
-  HeadingTypeCode,
-} from "../../controller/Block/TextBlock/HeadingBlock";
-import { ListBlock } from "../../controller/Block/ListBlock/ListBlock";
+import { BLOCK_TYPE } from "../../controller/Block/EditorBlock/interfaces";
 
 const Block = React.memo((props) => {
   const {
@@ -92,7 +84,7 @@ const Block = React.memo((props) => {
         containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
       }
     }
-    containerInfo.deleteBlock(blockInfo.getKey());
+    containerInfo.deleteBlockByKey(blockInfo.getKey());
     syncState(containerInfo.getBlocks());
   };
 
@@ -135,7 +127,7 @@ const Block = React.memo((props) => {
           return;
         }
         if (prevBlock.ref.innerHTML === "") {
-          containerInfo.deleteBlock(prevBlock.getKey());
+          containerInfo.deleteBlockByKey(prevBlock.getKey());
         } else {
           const curBlockContent = blockInfo.getContents();
           prevBlock.setContent([
@@ -145,7 +137,7 @@ const Block = React.memo((props) => {
           // force rerender the block component to avoid virtual dom diff problem with text node
           prevBlock.setKey(Date.now());
           prevBlock.setFocused(CursorPos.end);
-          containerInfo.deleteBlock(blockInfo.getKey());
+          containerInfo.deleteBlockByKey(blockInfo.getKey());
         }
         syncState(containerInfo.getBlocks());
       }
@@ -238,16 +230,21 @@ const Block = React.memo((props) => {
     }
   };
 
-  const handleCopy = (e: React.ClipboardEvent) => {
-    const plainText = window.getSelection().toString();
-    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    const copiedContent = blockInfo.copyContent(caretPos.start, caretPos.end);
-    const copyTextInfo = { textContent: copiedContent, key: "lovetiktok" };
-    const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
-    containerInfo.setClipboardInfo({
-      plainText,
-      textContext: copyTextInfoJsonString,
-    });
+  const handleCopy = () => {
+    const nativeCopy = blockInfo.getNativeCopy();
+    if (!nativeCopy) {
+      const plainText = window.getSelection().toString();
+      const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+      const copiedContent = blockInfo.copyContent(caretPos.start, caretPos.end);
+      const copyTextInfo = { textContent: copiedContent, key: "lovetiktok" };
+      const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
+      containerInfo.setClipboardInfo({
+        plainText,
+        textContext: copyTextInfoJsonString,
+      });
+    } else {
+      containerInfo.setClipboardInfo(null);
+    }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {

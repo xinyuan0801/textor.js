@@ -13,7 +13,7 @@ import { setCursorPos } from "../../Cursor/CursorManager";
 
 export class ListBlock extends EditorBlock implements IListBlock {
   blockContents: ITextBlockContent[][];
-  prevAction: TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION;
+  prevAction: TEXT_BLOCK_ACTION;
 
   constructor(key, type, blockContents) {
     super(key, type, blockContents);
@@ -25,7 +25,7 @@ export class ListBlock extends EditorBlock implements IListBlock {
     this.prevAction = newAction;
   }
 
-  getPrevAction(): TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION {
+  getPrevAction(): TEXT_BLOCK_ACTION {
     return this.prevAction;
   }
 
@@ -34,7 +34,6 @@ export class ListBlock extends EditorBlock implements IListBlock {
   }
 
   copyContent(startIndex?: number, endIndex?: number): ITextBlockContent[] {
-
     return [];
   }
 
@@ -89,26 +88,20 @@ export class ListBlock extends EditorBlock implements IListBlock {
       newListContents[targetListElement] = newBlockContent;
       this.setContent(newListContents);
       if (
-        startIndex - targetContentStartIndex <= leftBound &&
-        rightBound <= endIndex - targetContentStartIndex
-      ) {
-        console.log("+1 loader");
-        currentContentIndex++;
-      } else if (
         leftBound <= startIndex - targetContentStartIndex &&
         rightBound <= endIndex - targetContentStartIndex &&
         rightBound >= startIndex - targetContentStartIndex
       ) {
-        console.log("+2 loaded");
+        console.log("+2");
         currentContentIndex += 2;
       } else if (
         leftBound <= startIndex - targetContentStartIndex &&
         rightBound >= endIndex - targetContentStartIndex
       ) {
-        console.log("+3 loaded");
+        console.log("+3");
         currentContentIndex += 3;
       } else {
-        console.log("+1 loaded");
+        console.log("+1");
         currentContentIndex++;
       }
       leftBound += currentContentOriginLength;

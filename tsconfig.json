@@ -4,7 +4,8 @@
     "target": "es5",
     "sourceMap": true,
     "lib": ["es2021", "dom"],
-    "jsx": "react"
+    "jsx": "react",
+    "declaration": true
   },
   "jsx": "preserve",
   "exclude": ["node_modules"],

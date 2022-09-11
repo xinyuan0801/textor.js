@@ -1,5 +1,10 @@
 import { ITextBlockContent } from "../TextBlock/interfaces";
 
+/**
+ * return the first target block content when marking text
+ * @param blockContents
+ * @param startIndex
+ */
 function findMarkedListElement(
   blockContents: ITextBlockContent[][],
   startIndex: number
@@ -18,6 +23,10 @@ function findMarkedListElement(
   return { targetIndex, targetContentStartIndex };
 }
 
+/**
+ * get length of a single list element
+ * @param listContent
+ */
 function getListElementLength(listContent: ITextBlockContent[]) {
   let count = 0;
   listContent.forEach((content) => {

@@ -1,5 +1,5 @@
-import { IEditorBlock } from "../EditorBlock/interfaces";
-import { HeadingTypeCode } from "./HeadingBlock";
+import {IEditorBlock} from "../EditorBlock/interfaces";
+import {HeadingTypeCode} from "./HeadingBlock";
 
 enum TEXT_BLOCK_ACTION {
   input = "input",

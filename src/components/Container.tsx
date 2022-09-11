@@ -1,19 +1,24 @@
-import React, {useCallback, useState} from "react";
+import React, { useCallback, useState } from "react";
 
-import {Block} from "./Blocks/Block";
 import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
 
 import "../style/container.css";
-import {useGenerateContainer} from "./ContainerHooks";
-import {EditorBlock} from "../controller/Block/EditorBlock/EditorBlock";
-import {TEXT_STYLE_ACTION, TEXT_TYPE,} from "../controller/Block/TextBlock/interfaces";
-import {BLOCK_TYPE} from "../controller/Block/EditorBlock/interfaces";
-import {CursorPos} from "../controller/Cursor/interfaces";
-import {HeadingBlock, HeadingTypeCode,} from "../controller/Block/TextBlock/HeadingBlock";
-import {ListBlock} from "../controller/Block/ListBlock/ListBlock";
-import {ListBlockComponent} from "./Blocks/ListBlock/ListBlockComponent";
-import {TextBlockComponent} from "./Blocks/TextBlock/TextBlockComponent";
-import {HeadingBlockComponent} from "./Blocks/HeadingBlock/HeadingBlockComponent";
+import { useGenerateContainer } from "./ContainerHooks";
+import { EditorBlock } from "../controller/Block/EditorBlock/EditorBlock";
+import {
+  TEXT_STYLE_ACTION,
+  TEXT_TYPE,
+} from "../controller/Block/TextBlock/interfaces";
+import { BLOCK_TYPE } from "../controller/Block/EditorBlock/interfaces";
+import { CursorPos } from "../controller/Cursor/interfaces";
+import {
+  HeadingBlock,
+  HeadingTypeCode,
+} from "../controller/Block/TextBlock/HeadingBlock";
+import { ListBlock } from "../controller/Block/ListBlock/ListBlock";
+import { ListBlockComponent } from "./Blocks/ListBlock/ListBlockComponent";
+import { TextBlockComponent } from "./Blocks/TextBlock/TextBlockComponent";
+import { HeadingBlockComponent } from "./Blocks/HeadingBlock/HeadingBlockComponent";
 
 function Container() {
   const containerInstance = useGenerateContainer();
@@ -29,10 +34,6 @@ function Container() {
     const editorBlocks: EditorBlock[] = containerInstance.current.getBlocks();
     const lastBlock: EditorBlock = editorBlocks[editorBlocks.length - 1];
     if (!lastBlock || lastBlock.ref.innerHTML !== "") {
-      // const testTextBlock = new ListBlock(Date.now(), BLOCK_TYPE.list, [
-      //   [{ textType: TEXT_TYPE.list, textContent: "list 第一行测试" }],
-      //   [{ textType: TEXT_TYPE.list, textContent: "list 第二行测试" }],
-      // ]);
       const testTextBlock = new TextBlock(Date.now(), BLOCK_TYPE.text, []);
       containerInstance.current.insertBlock(-1, testTextBlock);
       const blocksArray = containerInstance.current.getBlocks().slice();
@@ -112,7 +113,7 @@ function Container() {
           containerInfo={containerInstance.current}
           syncState={syncBlockState}
         ></HeadingBlockComponent>
-      )
+      );
     }
   };
 

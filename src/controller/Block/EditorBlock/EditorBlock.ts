@@ -1,23 +1,30 @@
-import {CursorPos} from "../../Cursor/interfaces";
-import {BLOCK_STATUS, BLOCK_TYPE, IEditorBlock} from "./interfaces";
-import {ITextBlockContent} from "../TextBlock/interfaces";
-import {LinkedList} from "../../../utils/LinkedList/LinkedList";
-import {LinkedListNode} from "../../../utils/LinkedList/LinkedListNode";
-import {blockContentDeepClone} from "./utils";
+import { CursorPos } from "../../Cursor/interfaces";
+import { BLOCK_TYPE, IEditorBlock } from "./interfaces";
+import { ITextBlockContent } from "../TextBlock/interfaces";
+import { LinkedList } from "../../../utils/LinkedList/LinkedList";
+import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
+import { blockContentDeepClone } from "./utils";
 
 abstract class EditorBlock implements IEditorBlock {
+  //unique identifier for each text block
   key: number;
   type: BLOCK_TYPE;
-  blockContents: (ITextBlockContent | ITextBlockContent[])[];
+  blockContents: any;
+  // block dom element
   ref: HTMLElement;
-  currentEra: LinkedListNode<(ITextBlockContent | ITextBlockContent[])[]>;
-  history: LinkedList<(ITextBlockContent | ITextBlockContent[])[]>;
+  // block current state in undo/redo system
+  currentEra: LinkedListNode<any>;
+  // doubly linked list for all undo/redo history
+  history: LinkedList<any>;
+  // index of the current state in undo/redo history
   historyPtr: number;
+  // use native copy if true, else use custom copy
+  nativeCopy: boolean;
 
   protected constructor(
     key: number,
     type: BLOCK_TYPE,
-    blockContents: (ITextBlockContent | ITextBlockContent[])[],
+    blockContents: any,
     ref?: HTMLElement
   ) {
     this.key = key;
@@ -25,22 +32,36 @@ abstract class EditorBlock implements IEditorBlock {
     this.blockContents = blockContents;
     this.ref = ref;
     this.historyPtr = 0;
-    this.history = new LinkedList<(ITextBlockContent | ITextBlockContent[])[]>(
-      blockContents
-    );
-    console.log(this.history);
+    this.nativeCopy = true;
+    this.history = new LinkedList<any>(blockContents);
     this.currentEra = this.history.head.next;
   }
 
+  /**
+   * set block as focused, in the position provided
+   * @param position
+   */
   abstract setFocused(position: CursorPos): void;
 
+  /**
+   * sync current dom element into blockContents structure
+   * @param currentContent
+   */
   abstract sync(currentContent: ChildNode): any;
 
+  /**
+   * copy content within startIndex and endIndex and return in blockContents format
+   * @param startIndex
+   * @param endIndex
+   */
   abstract copyContent(
     startIndex?: number,
     endIndex?: number
   ): ITextBlockContent[];
 
+  /**
+   * return true if block is empty, else return false
+   */
   abstract isEmpty(): boolean;
 
   saveCurrentContent() {
@@ -48,10 +69,13 @@ abstract class EditorBlock implements IEditorBlock {
     this.setContent(newContents);
   }
 
+  /**
+   * record newest state in undo/redo history, use newHistory or current block contents if not provided.
+   * @param newHistory
+   */
   recordHistory(newHistory?: any[]): void {
     const currentHistory =
       newHistory || blockContentDeepClone(this.getContents());
-    console.log(currentHistory);
     // if pointer is not at latest history, create new history follow the era that pointer currently on
     if (this.historyPtr !== this.history.length - 1) {
       const newEraNode = new LinkedListNode(currentHistory);
@@ -69,7 +93,6 @@ abstract class EditorBlock implements IEditorBlock {
     this.historyPtr++;
     console.log("recorded", this.currentEra);
   }
-
 
   redoHistory(): void {
     console.log("redo");
@@ -127,6 +150,10 @@ abstract class EditorBlock implements IEditorBlock {
 
   getCurrEra(): LinkedListNode<(ITextBlockContent | ITextBlockContent[])[]> {
     return this.currentEra;
+  }
+
+  getNativeCopy(): boolean {
+    return this.nativeCopy;
   }
 }
 

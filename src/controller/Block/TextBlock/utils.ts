@@ -1,10 +1,9 @@
 import { ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./interfaces";
 
-interface IFirstContentInfo {
-  firstContentIndex: number;
-  firstContentStart: number;
-}
-
+/**
+ * convert text to avoid replacement character
+ * @param textContent
+ */
 const normalTextConverter = (textContent: string): string => {
   return textContent
     .replaceAll("&lt;", "<")
@@ -15,6 +14,13 @@ const normalTextConverter = (textContent: string): string => {
     .replaceAll("&apos;", "'");
 };
 
+/**
+ * return true if content in contentStart and contentEnd are being selected
+ * @param contentStart
+ * @param contentEnd
+ * @param selectionStart
+ * @param selectionEnd
+ */
 function checkInSelection(
   contentStart: number,
   contentEnd,
@@ -33,6 +39,12 @@ function checkInSelection(
   );
 }
 
+/**
+ * return block content with newText in textContents form with newType
+ * @param parentContent
+ * @param newText
+ * @param newType
+ */
 function generateNewContent(
   parentContent: ITextBlockContent,
   newText: string,
@@ -44,7 +56,7 @@ function generateNewContent(
     isMarked: parentContent.isMarked,
     isBold: parentContent.isBold,
     isUnderline: parentContent.isUnderline,
-    headingSize: parentContent.headingSize
+    headingSize: parentContent.headingSize,
   };
   if (newType === undefined) {
     return newContent;
@@ -65,11 +77,20 @@ function generateNewContent(
   return newContent;
 }
 
+/**
+ * return the first target block content that has overlap with startIndex
+ * @param startIndex
+ * @param blockContents
+ * @param isInsert
+ */
 function findFirstContent(
   startIndex: number,
   blockContents: ITextBlockContent[],
   isInsert?: boolean
-): IFirstContentInfo {
+): {
+  firstContentIndex: number;
+  firstContentStart: number;
+} {
   let firstContentStart = 0;
   let firstContentIndex = 0;
   const flag = isInsert ? 0 : 1;
@@ -92,6 +113,5 @@ export {
   normalTextConverter,
   generateNewContent,
   findFirstContent,
-  IFirstContentInfo,
   checkInSelection,
 };

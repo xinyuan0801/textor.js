@@ -4,6 +4,10 @@ interface ICursorPosition {
   end: number;
 }
 
+/**
+ * return start and end position of cursor on given element
+ * @param element
+ */
 export function getSelectionCharacterOffsetWithin(element): ICursorPosition {
   let start = 0;
   let end = 0;

@@ -1,5 +1,10 @@
 import {CursorPos} from "./interfaces";
 
+/**
+ * set cursor at given position in textContent
+ * @param textContent
+ * @param position
+ */
 export function setCursorPos(textContent: HTMLElement, position: CursorPos)
 {
     const isStart = position === CursorPos.start;
