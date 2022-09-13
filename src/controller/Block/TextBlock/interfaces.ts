@@ -31,9 +31,9 @@ interface ITextBlock extends Omit<IEditorBlock, "blockContents" | "sync"> {
 }
 
 enum TEXT_TYPE {
-  normal, // text with different styles
-  heading, // heading text
-  list, // text with list format
+  normal = "text", // text with different styles
+  heading = "heading", // heading text
+  list = "list", // text with list format
 }
 
 // different text annotation style

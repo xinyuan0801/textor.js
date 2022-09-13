@@ -38,7 +38,8 @@ export class ListBlock extends EditorBlock implements IListBlock {
   }
 
   setFocused(position: CursorPos): void {
-    setCursorPos(this.ref, position);
+    const listElements = this.ref.childNodes[0];
+    setCursorPos(listElements, position);
   }
 
   sync(currentContent: ChildNode): ITextBlockContent[][] {
@@ -51,6 +52,12 @@ export class ListBlock extends EditorBlock implements IListBlock {
     return newListContents;
   }
 
+  /**
+   * Mark text contents in list block within range from startIndex and endIndex into type
+   * @param type
+   * @param startIndex
+   * @param endIndex
+   */
   markSelectedText(
     type: TEXT_STYLE_ACTION,
     startIndex: number,
@@ -110,6 +117,9 @@ export class ListBlock extends EditorBlock implements IListBlock {
     this.recordHistory();
   }
 
+  /**
+   * Get total length of all list elements combined in a list block
+   */
   getTotalContentLength(): number {
     let count = 0;
     const listContents = this.getContents();
@@ -119,6 +129,9 @@ export class ListBlock extends EditorBlock implements IListBlock {
     return count;
   }
 
+  /**
+   * return true if a list element is empty else return false
+   */
   isEmpty(): boolean {
     const listContents = this.ref.innerText;
     return listContents.length === 0;

@@ -5,6 +5,8 @@ import {
   TEXT_TYPE,
 } from "./interfaces";
 import { normalTextConverter } from "./utils";
+import {CursorPos} from "../../Cursor/interfaces";
+import {setCursorPos} from "../../Cursor/CursorManager";
 
 enum HeadingTypeCode {
   one = "H1",
@@ -32,7 +34,6 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
   sync(currentContent: HTMLElement): ITextBlockContent[] {
     const newRenderBlockContent: ITextBlockContent[] = [];
     const childNodes = currentContent.childNodes;
-    console.log(childNodes);
     childNodes.forEach((child) => {
       if (
         child.nodeName === "H1" ||
@@ -49,6 +50,7 @@ class HeadingBlock extends TextBlock implements IHeadingBlock {
         });
       }
     });
+    console.log("heading synced", newRenderBlockContent);
     return newRenderBlockContent;
   }
 

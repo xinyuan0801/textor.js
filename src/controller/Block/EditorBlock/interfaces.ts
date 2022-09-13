@@ -28,10 +28,10 @@ interface IEditorBlock {
 }
 
 enum BLOCK_TYPE {
-  text, // text with different styles
-  heading, // heading text
-  list, // list text
-  image, // image
+  text = "text", // text with different styles
+  heading = "heading", // heading text
+  list = "list", // list text
+  image = "image", // image
 }
 
 export { IEditorBlock, BLOCK_TYPE };

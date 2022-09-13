@@ -1,9 +1,20 @@
-import {EditorBlock} from "../EditorBlock/EditorBlock";
-import {checkInSelection, findFirstContent, generateNewContent, normalTextConverter,} from "./utils";
-import {setCursorPos} from "../../Cursor/CursorManager";
-import {CursorPos} from "../../Cursor/interfaces";
-import {ITextBlock, ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_STYLE_ACTION, TEXT_TYPE,} from "./interfaces";
-import {LinkedList} from "../../../utils/LinkedList/LinkedList";
+import { EditorBlock } from "../EditorBlock/EditorBlock";
+import {
+  checkInSelection,
+  findFirstContent,
+  generateNewContent,
+  normalTextConverter,
+} from "./utils";
+import { setCursorPos } from "../../Cursor/CursorManager";
+import { CursorPos } from "../../Cursor/interfaces";
+import {
+  ITextBlock,
+  ITextBlockContent,
+  TEXT_BLOCK_ACTION,
+  TEXT_STYLE_ACTION,
+  TEXT_TYPE,
+} from "./interfaces";
+import { LinkedList } from "../../../utils/LinkedList/LinkedList";
 
 export class TextBlock extends EditorBlock implements ITextBlock {
   prevAction: TEXT_BLOCK_ACTION;
@@ -122,6 +133,12 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     return selectedTexts;
   }
 
+  /**
+   * Make text contents in text block within range from startIndex to endIndex
+   * @param type
+   * @param startIndex
+   * @param endIndex
+   */
   markSelectedText(
     type: TEXT_STYLE_ACTION,
     startIndex: number,
@@ -177,6 +194,11 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     this.setPrevAction(TEXT_BLOCK_ACTION.origin);
   }
 
+  /**
+   * Insert given contents at given index in text block content
+   * @param newContents
+   * @param index
+   */
   insertBlockContents(newContents: ITextBlockContent[], index: number): void {
     const blockContents = this.getContents();
     if (blockContents.length === 0) {
@@ -210,12 +232,19 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     this.setContent(blockContents);
   }
 
+  /**
+   * return true if the text block has empty content, else return false
+   */
   isEmpty(): boolean {
     // for instant check of block content, directly check dom element content
     const blockContent = this.ref.innerText;
     return blockContent.length === 0;
   }
 
+  /**
+   * Return text contents in text block content form from dom element
+   * @param currentContent
+   */
   static parseTextHTML(currentContent: ChildNode): ITextBlockContent[] {
     const newRenderBlockContent: ITextBlockContent[] = [];
     const childNodes = currentContent.childNodes;
@@ -272,6 +301,15 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     return newRenderBlockContent;
   }
 
+  /**
+   * Return new text content after annotation
+   * @param contentIndex
+   * @param contentStart
+   * @param selectionStart
+   * @param selectionEnd
+   * @param newType
+   * @param blockContent
+   */
   static annotateBlockContent(
     contentIndex: number,
     contentStart: number,

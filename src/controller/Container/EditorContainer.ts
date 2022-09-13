@@ -107,4 +107,14 @@ export class EditorContainer {
   getClipboardInfo(): IClipboardInfo {
     return this.clipboardInfo;
   }
+
+  exportContents() {
+    return this.blocks.map((block) => {
+      return {
+        key: block.key,
+        contents: block.blockContents,
+        type: block.type
+      }
+    })
+  }
 }

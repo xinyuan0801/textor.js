@@ -192,6 +192,13 @@ function Container() {
       >
         删除下划线
       </button>
+      <button
+        onClick={() => {
+          console.log(containerInstance.current.exportContents());
+        }}
+      >
+        导出数据
+      </button>
       <div className="container" onClick={handleClickContainer}>
         {blockArray.map(renderBlock)}
       </div>

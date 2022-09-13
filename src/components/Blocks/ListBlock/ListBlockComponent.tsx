@@ -4,7 +4,7 @@ import { EditorBlock } from "../../../controller/Block/EditorBlock/EditorBlock";
 import { EditorContainer } from "../../../controller/Container/EditorContainer";
 import { ITextBlockContent } from "../../../controller/Block/TextBlock/interfaces";
 import { ListBlock } from "../../../controller/Block/ListBlock/ListBlock";
-import {getSelectionCharacterOffsetWithin} from "../../../controller/Cursor/utilts";
+import { getSelectionCharacterOffsetWithin } from "../../../controller/Cursor/utilts";
 
 const ListBlockComponent = (props) => {
   const {
@@ -60,7 +60,11 @@ const ListBlockComponent = (props) => {
   const parseListBlock = (
     listContents: ITextBlockContent[][]
   ): HTMLElement[] | undefined => {
-    return <ul contentEditable={true} suppressContentEditableWarning={true}>{listContents.map(parseListElement)}</ul>;
+    return (
+      <ul contentEditable={true} suppressContentEditableWarning={true}>
+        {listContents.map(parseListElement)}
+      </ul>
+    );
   };
 
   const handleEnterPressed = (e: KeyboardEvent) => {
@@ -87,9 +91,7 @@ const ListBlockComponent = (props) => {
         if (listElements.length === 1) {
           containerInfo.deleteBlockByKey(blockInfo.getKey());
         } else {
-          listBlock.setContent(
-            listElements.slice(0, listElements.length - 1)
-          );
+          listBlock.setContent(listElements.slice(0, listElements.length - 1));
           listBlock.setKey(Date.now() * Math.random());
         }
         const targetIndex: number = containerInfo.getBlockIndex(
@@ -101,13 +103,11 @@ const ListBlockComponent = (props) => {
       // follow native behaviour when enter create a new list element
       else {
         // record state for list block before a new list element if created
-        blockInfo.recordHistory(
-          listElements.slice(0, listElements.length - 1)
-        );
+        blockInfo.recordHistory(listElements.slice(0, listElements.length - 1));
       }
     }
     blockInfo.recordHistory();
-  }
+  };
 
   const renderContent = (blockInfo: EditorBlock) => {
     const listContents = (blockInfo as ListBlock).getContents();
