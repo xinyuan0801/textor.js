@@ -42,6 +42,10 @@ export class ListBlock extends EditorBlock implements IListBlock {
     setCursorPos(listElements, position);
   }
 
+  /**
+   * return block content form of data structure from list block's dom element
+   * @param currentContent
+   */
   sync(currentContent: ChildNode): ITextBlockContent[][] {
     const listElements = currentContent.childNodes[0];
     const newListContents = [];
@@ -94,7 +98,11 @@ export class ListBlock extends EditorBlock implements IListBlock {
       const newListContents = this.getContents();
       newListContents[targetListElement] = newBlockContent;
       this.setContent(newListContents);
-      if (
+      if (leftBound >= startIndex && rightBound <= endIndex) {
+        console.log("+1")
+        currentContentIndex++;
+      }
+      else if (
         leftBound <= startIndex - targetContentStartIndex &&
         rightBound <= endIndex - targetContentStartIndex &&
         rightBound >= startIndex - targetContentStartIndex

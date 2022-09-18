@@ -1,8 +1,8 @@
 import { EditorBlock } from "../EditorBlock/EditorBlock";
 import {
-  checkInSelection,
+  checkInSelection, checkSameContentType,
   findFirstContent,
-  generateNewContent,
+  generateNewContent, mergeContent,
   normalTextConverter,
 } from "./utils";
 import { setCursorPos } from "../../Cursor/CursorManager";
@@ -159,6 +159,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
         endIndex
       )
     ) {
+      console.log("processing", currentContent[currentContentIndex]);
       const currentContentOriginLength =
         currentContent[currentContentIndex].textContent.length;
       const rightBound = leftBound + currentContentOriginLength;
@@ -173,7 +174,11 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       );
       this.setContent(newBlockContent);
       console.log(newBlockContent);
-      if (
+      if (leftBound >= startIndex && rightBound <= endIndex) {
+        console.log("+1")
+        currentContentIndex++;
+      }
+      else if (
         leftBound <= startIndex &&
         rightBound <= endIndex &&
         rightBound >= startIndex
@@ -239,6 +244,29 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     // for instant check of block content, directly check dom element content
     const blockContent = this.ref.innerText;
     return blockContent.length === 0;
+  }
+
+  /**
+   * return block contents after merging fragment contents after annotation
+   * @param blockContents
+   */
+  contentCleanUp(blockContents: ITextBlockContent[]): ITextBlockContent[] {
+    let prevContent = blockContents[0];
+    const cleanBlockContents = [blockContents[0]];
+    // skip first element as it is already included
+    blockContents.slice(1).forEach((content) => {
+      if (checkSameContentType(prevContent, content)) {
+        const newContent = mergeContent(prevContent, content);
+        // replace top content as it will be merged
+        cleanBlockContents.splice(cleanBlockContents.length - 1, 1, newContent);
+        prevContent = newContent;
+      } else {
+        cleanBlockContents.push(content);
+        prevContent = content;
+      }
+    })
+    this.setContent(cleanBlockContents);
+    return cleanBlockContents;
   }
 
   /**
@@ -335,7 +363,8 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       } else if (newType === TEXT_STYLE_ACTION.removeUnderline) {
         targetContent.isUnderline = false;
       }
-    } else if (
+    }
+    else if (
       contentStart <= selectionStart &&
       contentEnd <= selectionEnd &&
       contentEnd - 1 >= selectionStart
@@ -353,7 +382,8 @@ export class TextBlock extends EditorBlock implements ITextBlock {
         newType
       );
       blockContent.splice(contentIndex + 1, 0, newContent);
-    } else if (
+    }
+    else if (
       selectionStart <= contentStart &&
       selectionEnd - 1 >= contentStart &&
       selectionEnd <= contentEnd
@@ -371,7 +401,8 @@ export class TextBlock extends EditorBlock implements ITextBlock {
         newType
       );
       blockContent.splice(contentIndex, 0, newContent);
-    } else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
+    }
+    else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
       const targetText = targetContent.textContent;
       const newContentText = targetText.slice(
         selectionStart - contentStart,

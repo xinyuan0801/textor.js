@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 
-import {TextBlock} from "../controller/Block/TextBlock/TextBlock";
+import { TextBlock } from "../controller/Block/TextBlock/TextBlock";
 
 import "../style/container.css";
 import { useGenerateContainer } from "./ContainerHooks";
@@ -198,6 +198,71 @@ function Container() {
         }}
       >
         导出数据
+      </button>
+      <button
+        onClick={() => {
+          containerInstance.current.importContents([
+            {
+              "key": 1663289834570,
+              "contents": [
+                {
+                  "textType": "text",
+                  "textContent": "dasdasdasddasdasdasd",
+                  "isMarked": false,
+                  "isBold": false,
+                  "isUnderline": false
+                }
+              ],
+              "type": "text",
+              "nativeCopy": false
+            },
+            {
+              "key": 1663289835653,
+              "contents": [
+                {
+                  "textType": "text",
+                  "textContent": "dasdasdasddasdasdasd",
+                  "isMarked": false,
+                  "isBold": false,
+                  "isUnderline": false
+                }
+              ],
+              "type": "text",
+              "nativeCopy": false
+            },
+            {
+              "key": 1663289836575,
+              "contents": [
+                {
+                  "textType": "text",
+                  "textContent": "dasdasdasdasddasdasdasdasd",
+                  "isMarked": false,
+                  "isBold": false,
+                  "isUnderline": false
+                }
+              ],
+              "type": "text",
+              "nativeCopy": false
+            },
+            {
+              "key": 1663289837879,
+              "contents": [
+                {
+                  "textType": "text",
+                  "textContent": "dasdasdasdasdasdas",
+                  "isMarked": false,
+                  "isBold": false,
+                  "isUnderline": false
+                }
+              ],
+              "type": "text",
+              "nativeCopy": false
+            }
+          ]);
+          syncBlockState(containerInstance.current.getBlocks());
+        }}
+      >
+        导入数据
       </button>
       <div className="container" onClick={handleClickContainer}>
         {blockArray.map(renderBlock)}

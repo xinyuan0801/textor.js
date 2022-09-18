@@ -1,10 +1,19 @@
-import React from "react";
+import React, {useRef} from "react";
 import { Block } from "../Block";
 import { EditorBlock } from "../../../controller/Block/EditorBlock/EditorBlock";
 import { EditorContainer } from "../../../controller/Container/EditorContainer";
 import { ITextBlockContent } from "../../../controller/Block/TextBlock/interfaces";
 import { ListBlock } from "../../../controller/Block/ListBlock/ListBlock";
 import { getSelectionCharacterOffsetWithin } from "../../../controller/Cursor/utilts";
+import {useCompositionInput} from "../BlockHooks";
+import {
+  handleTextBackspace,
+  handleTextBlur,
+  handleTextCopy,
+  handleTextKeyDown,
+  handleTextPaste,
+  handleTextSelection
+} from "../TextUtils";
 
 const ListBlockComponent = (props) => {
   const {
@@ -12,10 +21,12 @@ const ListBlockComponent = (props) => {
     containerInfo,
     syncState,
   }: {
-    blockInfo: EditorBlock;
+    blockInfo: ListBlock;
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
   } = props;
+
+  const [compositionInput, handleCompositionStart, handleCompositionEnd] = useCompositionInput();
 
   const parseTextBlockContents = (
     contents: ITextBlockContent[]
@@ -67,51 +78,13 @@ const ListBlockComponent = (props) => {
     );
   };
 
-  const handleEnterPressed = (e: KeyboardEvent) => {
-    blockInfo.saveCurrentContent();
-    const caretPos = getSelectionCharacterOffsetWithin(e.target);
-    console.log(caretPos);
-    // press enter at end of a list element
-    if (
-      caretPos.start === caretPos.end &&
-      caretPos.start === (blockInfo as ListBlock).getTotalContentLength()
-    ) {
-      const listBlock = blockInfo as ListBlock;
-      const listElements = listBlock.getContents();
-      const lastListElement = listElements[listElements.length - 1];
-      // if last list element is empty and hit enter again, jump out of list block
-      if (
-        lastListElement.length === 0 ||
-        (lastListElement.length === 1 &&
-          lastListElement[0].textContent.length === 0)
-      ) {
-        console.log("special action");
-        e.preventDefault();
-        // avoid cases when a newly list block is made
-        if (listElements.length === 1) {
-          containerInfo.deleteBlockByKey(blockInfo.getKey());
-        } else {
-          listBlock.setContent(listElements.slice(0, listElements.length - 1));
-          listBlock.setKey(Date.now() * Math.random());
-        }
-        const targetIndex: number = containerInfo.getBlockIndex(
-          blockInfo.getKey()
-        );
-        containerInfo.insertBlock(targetIndex + 1);
-        syncState(containerInfo.getBlocks());
-      }
-      // follow native behaviour when enter create a new list element
-      else {
-        // record state for list block before a new list element if created
-        blockInfo.recordHistory(listElements.slice(0, listElements.length - 1));
-      }
-    }
-    blockInfo.recordHistory();
+  const renderContent = (blockInfo: ListBlock) => {
+    const listContents = blockInfo.getContents();
+    return parseListBlock(listContents);
   };
 
-  const renderContent = (blockInfo: EditorBlock) => {
-    const listContents = (blockInfo as ListBlock).getContents();
-    return parseListBlock(listContents);
+  const handleClick = (e) => {
+    e.stopPropagation();
   };
 
   return (
@@ -120,8 +93,15 @@ const ListBlockComponent = (props) => {
       containerInfo={containerInfo}
       syncState={syncState}
       renderContent={renderContent}
-      enterHandler={handleEnterPressed}
       outerContentEditable={false}
+      onClick={handleClick}
+      onCompositionStart={handleCompositionStart}
+      onCompositionEnd={handleCompositionEnd}
+      onCopy={() => handleTextCopy(blockInfo, containerInfo)}
+      onBlur={() => handleTextBlur(blockInfo, compositionInput)}
+      onPaste={(e) => handleTextPaste(e, blockInfo, containerInfo, syncState)}
+      onMouseUp={() => handleTextSelection(blockInfo, containerInfo)}
+      onKeyDown={(e) => handleTextKeyDown(e, blockInfo, containerInfo,compositionInput, syncState)}
     ></Block>
   );
 };

@@ -3,7 +3,7 @@ import { BLOCK_TYPE, IEditorBlock } from "./interfaces";
 import { ITextBlockContent } from "../TextBlock/interfaces";
 import { LinkedList } from "../../../utils/LinkedList/LinkedList";
 import { LinkedListNode } from "../../../utils/LinkedList/LinkedListNode";
-import { blockContentDeepClone } from "./utils";
+import { basicDeepClone } from "./utils";
 
 abstract class EditorBlock implements IEditorBlock {
   //unique identifier for each text block
@@ -65,8 +65,10 @@ abstract class EditorBlock implements IEditorBlock {
   abstract isEmpty(): boolean;
 
   saveCurrentContent() {
+    console.log(this.ref.innerText);
     const newContents = this.sync(this.ref);
     this.setContent(newContents);
+    console.log(newContents.slice());
   }
 
   /**
@@ -75,7 +77,7 @@ abstract class EditorBlock implements IEditorBlock {
    */
   recordHistory(newHistory?: any[]): void {
     const currentHistory =
-      newHistory || blockContentDeepClone(this.getContents());
+      newHistory || basicDeepClone(this.getContents());
     // if pointer is not at latest history, create new history follow the era that pointer currently on
     if (this.historyPtr !== this.history.length - 1) {
       const newEraNode = new LinkedListNode(currentHistory);
@@ -101,7 +103,7 @@ abstract class EditorBlock implements IEditorBlock {
     }
     this.historyPtr++;
     this.currentEra = this.currentEra.next;
-    this.setContent(blockContentDeepClone(this.currentEra.val));
+    this.setContent(basicDeepClone(this.currentEra.val));
     console.log("current era", this.currentEra);
   }
 
@@ -112,7 +114,7 @@ abstract class EditorBlock implements IEditorBlock {
     }
     this.historyPtr--;
     this.currentEra = this.currentEra.prev;
-    this.setContent(blockContentDeepClone(this.currentEra.val));
+    this.setContent(basicDeepClone(this.currentEra.val));
     console.log("current era", this.currentEra);
   }
 

@@ -5,7 +5,7 @@ interface ICursorPosition {
 }
 
 /**
- * return start and end position of cursor on given element
+ * return start and end position of selection on given element
  * @param element
  */
 export function getSelectionCharacterOffsetWithin(element): ICursorPosition {
@@ -35,4 +35,8 @@ export function getSelectionCharacterOffsetWithin(element): ICursorPosition {
     end = preCaretTextRange.text.length;
   }
   return { start: start, end: end };
+}
+
+function selectNodes(nodes) {
+
 }

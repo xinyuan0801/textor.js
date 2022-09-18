@@ -8,6 +8,15 @@ import {
   HeadingBlock,
   HeadingTypeCode,
 } from "../../../controller/Block/TextBlock/HeadingBlock";
+import {
+  handleTextBackspace,
+  handleTextBlur,
+  handleTextCopy,
+  handleTextKeyDown,
+  handleTextPaste,
+  handleTextSelection
+} from "../TextUtils";
+import {useCompositionInput} from "../BlockHooks";
 
 const HeadingBlockComponent = (props) => {
   const {
@@ -19,6 +28,8 @@ const HeadingBlockComponent = (props) => {
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
   } = props;
+
+  const [compositionInput, handleCompositionStart, handleCompositionEnd] = useCompositionInput();
 
   const parseHeadingBlockContents = (
     contents: ITextBlockContent[]
@@ -47,12 +58,24 @@ const HeadingBlockComponent = (props) => {
     return parseHeadingBlockContents(headingBlockContent);
   };
 
+  const handleClick = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <Block
       blockInfo={blockInfo}
       containerInfo={containerInfo}
       syncState={syncState}
       renderContent={renderContent}
+      onClick={handleClick}
+      onCompositionStart={handleCompositionStart}
+      onCompositionEnd={handleCompositionEnd}
+      onCopy={() => handleTextCopy(blockInfo, containerInfo)}
+      onBlur={() => handleTextBlur(blockInfo, compositionInput)}
+      onPaste={(e) => handleTextPaste(e, blockInfo, containerInfo, syncState)}
+      onMouseUp={() => handleTextSelection(blockInfo, containerInfo)}
+      onKeyDown={(e) => handleTextKeyDown(e, blockInfo, containerInfo,compositionInput, syncState)}
     ></Block>
   );
 };

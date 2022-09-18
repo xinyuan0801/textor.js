@@ -1,7 +1,7 @@
 import {EditorBlock} from "../Block/EditorBlock/EditorBlock";
 import {TextBlock} from "../Block/TextBlock/TextBlock";
 import {CursorPos} from "../Cursor/interfaces";
-import {IClipboardInfo, ISelectedBlock} from "./interfaces";
+import {IClipboardInfo, IImportBlock, ISelectedBlock} from "./interfaces";
 import {BLOCK_TYPE} from "../Block/EditorBlock/interfaces";
 
 export class EditorContainer {
@@ -108,12 +108,42 @@ export class EditorContainer {
     return this.clipboardInfo;
   }
 
+  createBlock(blockContent: any, type: BLOCK_TYPE, blockKey?: number): EditorBlock {
+    const newBlockKey = blockKey ? blockKey : Date.now()
+    if (type === BLOCK_TYPE.text) {
+      return new TextBlock(newBlockKey, type, blockContent);
+    }
+  }
+
+  /**
+   * import content in importedBlock and render the editor
+   * @param importedBlock
+   */
+  importContents(importedBlock: any[]) {
+    const newEditorContent = [];
+    importedBlock.forEach((block) => {
+      const newBlock = this.createBlock(block.contents, block.type, block.key);
+      newEditorContent.push(newBlock);
+    })
+    this.setBlocks(newEditorContent);
+  }
+
+  /**
+   * return export data of container content
+   */
   exportContents() {
+    console.log('raw data', this.getBlocks().slice());
     return this.blocks.map((block) => {
+      const cleanBlock = (block as TextBlock).contentCleanUp(block.blockContents);
+      console.log('exported data', {key: block.key,
+        contents: cleanBlock,
+        type: block.type,
+        nativeCopy: block.nativeCopy})
       return {
         key: block.key,
-        contents: block.blockContents,
-        type: block.type
+        contents: cleanBlock,
+        type: block.type,
+        nativeCopy: block.nativeCopy
       }
     })
   }

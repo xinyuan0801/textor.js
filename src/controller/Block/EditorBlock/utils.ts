@@ -2,11 +2,11 @@ import { ITextBlockContent } from "../TextBlock/interfaces";
 import { safeJSONParse } from "../utils";
 
 /**
- * return a deep clone of blockContents
- * @param blockContents
+ * basic deep clone that return a deep copy of content, do not use when object contain function
+ * @param content
  */
-function blockContentDeepClone(blockContents: (ITextBlockContent | ITextBlockContent[])[]) {
-  return safeJSONParse(JSON.stringify(blockContents));
+function basicDeepClone(content: any) {
+  return safeJSONParse(JSON.stringify(content));
 }
 
-export { blockContentDeepClone };
+export { basicDeepClone };

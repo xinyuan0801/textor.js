@@ -1,3 +1,5 @@
+import {BLOCK_TYPE} from "../Block/EditorBlock/interfaces";
+
 interface ISelectedBlock {
   blockKey: number;
   selectionStart: number;
@@ -9,4 +11,10 @@ interface IClipboardInfo {
   textContext: string;
 }
 
-export { ISelectedBlock, IClipboardInfo };
+interface IImportBlock {
+  contents: any[],
+  key: number,
+  type: BLOCK_TYPE,
+}
+
+export { ISelectedBlock, IClipboardInfo, IImportBlock };

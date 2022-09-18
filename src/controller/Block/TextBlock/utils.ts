@@ -1,4 +1,5 @@
 import { ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "./interfaces";
+import {basicDeepClone} from "../EditorBlock/utils";
 
 /**
  * convert text to avoid replacement character
@@ -109,9 +110,24 @@ function findFirstContent(
   return { firstContentIndex: -1, firstContentStart: -1 };
 }
 
+function checkSameContentType(content: ITextBlockContent, targetContent: ITextBlockContent): boolean{
+  if (!content || !targetContent) {
+    return true;
+  }
+  return content.isBold === targetContent.isBold && content.isMarked === targetContent.isMarked && content.isUnderline === targetContent.isUnderline;
+}
+
+function mergeContent(content: ITextBlockContent, targetContent: ITextBlockContent): ITextBlockContent {
+  const cloneContent: ITextBlockContent = basicDeepClone(content);
+  cloneContent.textContent = cloneContent.textContent + targetContent.textContent;
+  return cloneContent;
+}
+
 export {
   normalTextConverter,
   generateNewContent,
   findFirstContent,
   checkInSelection,
+  checkSameContentType,
+  mergeContent
 };
