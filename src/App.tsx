@@ -1,19 +1,19 @@
 import "./App.css";
-import { Container } from "./components/Container";
-import React, { useState } from "react";
+import { Container } from "./textor-react/Container/Container";
+import React, {useCallback, useState} from "react";
 import {
   HeadingBlock,
   HeadingTypeCode,
-} from "./controller/Block/TextBlock/HeadingBlock";
+} from "./textor/Block/TextBlock/HeadingBlock";
 import {
   TEXT_STYLE_ACTION,
   TEXT_TYPE,
-} from "./controller/Block/TextBlock/interfaces";
-import { BLOCK_TYPE } from "./controller/Block/EditorBlock/interfaces";
-import { ListBlock } from "./controller/Block/ListBlock/ListBlock";
-import { useGenerateContainer } from "./components/ContainerHooks";
-import { TextBlock } from "./controller/Block/TextBlock/TextBlock";
-import {generateUniqueId} from "./utils/uuid";
+} from "./textor/interfaces/TextBlockInterfaces";
+import { BLOCK_TYPE } from "./textor/interfaces/EditorBlockInterfaces";
+import { ListBlock } from "./textor/Block/ListBlock/ListBlock";
+import { useGenerateContainer } from "./textor-react/hooks/UseGenerateContainer";
+import { TextBlock } from "./textor/Block/TextBlock/TextBlock";
+import {generateUniqueId} from "./textor-react/utils/UniqueId";
 
 function App() {
   const containerInstance = useGenerateContainer();
@@ -21,6 +21,10 @@ function App() {
   const [blockArray, setBlockArray] = useState(
     containerInstance.current.getBlocks()
   );
+
+  const memoSetBlockArray = useCallback((newBlockArrayState) => {
+    setBlockArray(newBlockArrayState.slice());
+  }, []);
 
   const addHeading = (headingSize: HeadingTypeCode) => {
     const headingBlock = new HeadingBlock(
@@ -33,23 +37,26 @@ function App() {
       -1,
       headingBlock
     );
-    setBlockArray(newEditorContents);
+    memoSetBlockArray(newEditorContents);
   };
 
   const handleSelection = (type: TEXT_STYLE_ACTION) => {
     const selectedInfo = containerInstance.current.getCurrentSelectedBlock();
+    console.log("selected", selectedInfo);
     if (selectedInfo) {
       const targetBlock = containerInstance.current.getBlockByKey(
         selectedInfo.blockKey
       );
       if (targetBlock !== 0) {
+        console.log("founded");
         (targetBlock as TextBlock).markSelectedText(
           type,
           selectedInfo.selectionStart,
           selectedInfo.selectionEnd
         );
         targetBlock.setKey(generateUniqueId());
-        setBlockArray(containerInstance.current.getBlocks());
+        console.log("after setting key", containerInstance.current.getBlocks().slice());
+        memoSetBlockArray(containerInstance.current.getBlocks());
       }
     }
   };
@@ -64,7 +71,7 @@ function App() {
     );
     // const blocksArray = containerInstance.current.getBlocks().slice();
     // // due to useRef, manually calling rerendering
-    setBlockArray(newEditorContents);
+    memoSetBlockArray(newEditorContents);
   };
 
   return (
@@ -89,7 +96,7 @@ function App() {
           addHeading(HeadingTypeCode.three);
           const blocksArray = containerInstance.current.getBlocks().slice();
           // due to useRef, manually calling rerendering
-          setBlockArray(blocksArray);
+          memoSetBlockArray(blocksArray);
         }}
       >
         增加heading3
@@ -203,7 +210,7 @@ function App() {
               nativeCopy: false,
             },
           ]);
-          setBlockArray(containerInstance.current.getBlocks());
+          memoSetBlockArray(containerInstance.current.getBlocks());
         }}
       >
         导入数据
@@ -211,7 +218,7 @@ function App() {
       <Container
         containerInstance={containerInstance}
         blockArray={blockArray}
-        setBlockArray={setBlockArray}
+        setBlockArray={memoSetBlockArray}
       />
     </div>
   );
