@@ -1,7 +1,7 @@
 import {BLOCK_TYPE} from "../Block/EditorBlock/interfaces";
 
 interface ISelectedBlock {
-  blockKey: number;
+  blockKey: string;
   selectionStart: number;
   selectionEnd: number;
 }
@@ -13,7 +13,7 @@ interface IClipboardInfo {
 
 interface IImportBlock {
   contents: any[],
-  key: number,
+  key: string,
   type: BLOCK_TYPE,
 }
 

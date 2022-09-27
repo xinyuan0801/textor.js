@@ -1,10 +1,9 @@
 import { CursorPos } from "../../Cursor/interfaces";
-import { ITextBlockContent } from "../TextBlock/interfaces";
 import {LinkedList} from "../../../utils/LinkedList/LinkedList";
 import {LinkedListNode} from "../../../utils/LinkedList/LinkedListNode";
 
 interface IEditorBlock {
-  key: number;
+  key: string;
   type: BLOCK_TYPE;
   blockContents: any;
   ref: HTMLElement;
@@ -19,8 +18,8 @@ interface IEditorBlock {
   getContents(): any;
   setContent(blockContents: any): void;
   copyContent(startIndex?: number, endIndex?: number): any;
-  getKey(): number;
-  setKey(newKey: number);
+  getKey(): string;
+  setKey(newKey: string);
   getType(): BLOCK_TYPE;
   recordHistory(): void;
   undoHistory(): void;

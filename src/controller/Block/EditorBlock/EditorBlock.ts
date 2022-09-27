@@ -7,7 +7,7 @@ import { basicDeepClone } from "./utils";
 
 abstract class EditorBlock implements IEditorBlock {
   //unique identifier for each text block
-  key: number;
+  key: string;
   type: BLOCK_TYPE;
   blockContents: any;
   // block dom element
@@ -22,7 +22,7 @@ abstract class EditorBlock implements IEditorBlock {
   nativeCopy: boolean;
 
   protected constructor(
-    key: number,
+    key: string,
     type: BLOCK_TYPE,
     blockContents: any,
     ref?: HTMLElement
@@ -134,11 +134,11 @@ abstract class EditorBlock implements IEditorBlock {
     this.blockContents = blockContents;
   }
 
-  getKey(): number {
+  getKey(): string {
     return this.key;
   }
 
-  setKey(newKey: number) {
+  setKey(newKey: string) {
     this.key = newKey;
   }
 

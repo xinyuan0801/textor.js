@@ -1,8 +1,8 @@
-import {EditorBlock} from "../Block/EditorBlock/EditorBlock";
-import {TextBlock} from "../Block/TextBlock/TextBlock";
-import {CursorPos} from "../Cursor/interfaces";
-import {IClipboardInfo, IImportBlock, ISelectedBlock} from "./interfaces";
-import {BLOCK_TYPE} from "../Block/EditorBlock/interfaces";
+import { EditorBlock } from "../Block/EditorBlock/EditorBlock";
+import { TextBlock } from "../Block/TextBlock/TextBlock";
+import { CursorPos } from "../Cursor/interfaces";
+import { IClipboardInfo, ISelectedBlock } from "./interfaces";
+import { BLOCK_TYPE } from "../Block/EditorBlock/interfaces";
 
 export class EditorContainer {
   blocks: EditorBlock[];
@@ -18,38 +18,35 @@ export class EditorContainer {
   }
 
   /**
-   * insert insertBlock or defaultBlock if not provided and return 1 if success and 0 if failed
+   * insert insertBlock at given index, return editor contents after the insertion
    * @param index
    * @param insertBlock
    */
-  insertBlock(index: number, insertBlock?: EditorBlock): number {
-    const newBlock = insertBlock
-      ? insertBlock
-      : new TextBlock(Date.now(), BLOCK_TYPE.text, []);
+  insertBlock(index: number, insertBlock: EditorBlock): EditorBlock[] {
     if (index === -1 || index === this.blocks.length) {
-      this.blocks.push(newBlock);
-      return 1;
+      this.blocks.push(insertBlock);
+      return this.blocks.slice();
     }
     if (typeof this.blocks[index] === "undefined") {
-      return 0;
+      return this.blocks.slice();
     }
-    this.blocks.splice(index, 0, newBlock);
-    return 1;
+    this.blocks.splice(index, 0, insertBlock);
+    return this.blocks.slice();
   }
 
   /**
-   * delete block with given blockKey, return 1 if success else return 0
+   * delete block with given blockKey, return editor contents after the deletion
    * @param blockKey
    */
-  deleteBlockByKey(blockKey: number): number {
+  deleteBlockByKey(blockKey: string): EditorBlock[] {
     const targetIndex = this.blocks.findIndex(
       (block) => block.key === blockKey
     );
     if (targetIndex === -1) {
-      return 0;
+      return this.blocks.slice();
     }
     this.blocks.splice(targetIndex, 1);
-    return 1;
+    return this.blocks.slice();
   }
 
   setBlocks(newBlocks: EditorBlock[]): void {
@@ -60,7 +57,7 @@ export class EditorContainer {
    * return block with given blockKey or return 0 if given block can not be found
    * @param blockKey
    */
-  getBlockByKey(blockKey: number): EditorBlock | 0 {
+  getBlockByKey(blockKey: string): EditorBlock | 0 {
     return this.blocks.find((block) => block.key === blockKey) || 0;
   }
 
@@ -68,7 +65,7 @@ export class EditorContainer {
    * return block's index with given blockKey
    * @param blockKey
    */
-  getBlockIndex(blockKey: number): number {
+  getBlockIndex(blockKey: string): number {
     console.log(this.blocks.slice(), blockKey);
     return this.blocks.findIndex((block) => block.key === blockKey);
   }
@@ -87,7 +84,7 @@ export class EditorContainer {
    * @param key
    * @param position
    */
-  setFocusByKey(key: number, position: CursorPos): void {
+  setFocusByKey(key: string, position: CursorPos): void {
     const targetBlock = this.blocks.find((block) => block.key === key);
     targetBlock.setFocused(position);
   }
@@ -108,8 +105,12 @@ export class EditorContainer {
     return this.clipboardInfo;
   }
 
-  createBlock(blockContent: any, type: BLOCK_TYPE, blockKey?: number): EditorBlock {
-    const newBlockKey = blockKey ? blockKey : Date.now()
+  createBlock(
+    blockContent: any,
+    type: BLOCK_TYPE,
+    blockKey?: number
+  ): EditorBlock {
+    const newBlockKey = blockKey ? blockKey : Date.now();
     if (type === BLOCK_TYPE.text) {
       return new TextBlock(newBlockKey, type, blockContent);
     }
@@ -124,7 +125,7 @@ export class EditorContainer {
     importedBlock.forEach((block) => {
       const newBlock = this.createBlock(block.contents, block.type, block.key);
       newEditorContent.push(newBlock);
-    })
+    });
     this.setBlocks(newEditorContent);
   }
 
@@ -132,19 +133,23 @@ export class EditorContainer {
    * return export data of container content
    */
   exportContents() {
-    console.log('raw data', this.getBlocks().slice());
+    console.log("raw data", this.getBlocks().slice());
     return this.blocks.map((block) => {
-      const cleanBlock = (block as TextBlock).contentCleanUp(block.blockContents);
-      console.log('exported data', {key: block.key,
+      const cleanBlock = (block as TextBlock).contentCleanUp(
+        block.blockContents
+      );
+      console.log("exported data", {
+        key: block.key,
         contents: cleanBlock,
         type: block.type,
-        nativeCopy: block.nativeCopy})
+        nativeCopy: block.nativeCopy,
+      });
       return {
         key: block.key,
         contents: cleanBlock,
         type: block.type,
-        nativeCopy: block.nativeCopy
-      }
-    })
+        nativeCopy: block.nativeCopy,
+      };
+    });
   }
 }

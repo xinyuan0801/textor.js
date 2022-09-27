@@ -7,6 +7,7 @@ import debounce from "lodash/debounce";
 import {safeJSONParse} from "../../controller/Block/utils";
 import {ISelectedBlock} from "../../controller/Container/interfaces";
 import {ListBlock} from "../../controller/Block/ListBlock/ListBlock";
+import {generateUniqueId} from "../../utils/uuid";
 
 const savingBlockContent = (blockInfo, compositionInput) => {
   if (!compositionInput.current) {
@@ -51,7 +52,7 @@ function handleTextBackspace(e, blockInfo, containerInfo, compositionInput, sync
         ...curBlockContent,
       ]);
       // force rerender the block component to avoid virtual dom diff problem with text node
-      prevBlock.setKey(Date.now());
+      prevBlock.setKey(generateUniqueId());
       prevBlock.setFocused(CursorPos.end);
       containerInfo.deleteBlockByKey(blockInfo.getKey());
     }
@@ -101,7 +102,7 @@ function handleTextPaste(e, blockInfo, containerInfo, syncState) {
       pasteContent.textContent,
       caretPos.start
     );
-    blockInfo.setKey(Date.now());
+    blockInfo.setKey(generateUniqueId());
     syncState(containerInfo.getBlocks());
   } else {
     const newPlainContent: ITextBlockContent[] = [
@@ -111,7 +112,7 @@ function handleTextPaste(e, blockInfo, containerInfo, syncState) {
       newPlainContent,
       caretPos.start
     );
-    blockInfo.setKey(Date.now());
+    blockInfo.setKey(generateUniqueId());
     syncState(containerInfo.getBlocks());
   }
 }
@@ -140,7 +141,8 @@ const handleEnterPressed = (e: KeyboardEvent, containerInfo, blockInfo, syncStat
       const targetIndex: number = containerInfo.getBlockIndex(
         blockInfo.getKey()
       );
-      containerInfo.insertBlock(targetIndex + 1);
+      const defaultBlock = new TextBlock(generateUniqueId(), BLOCK_TYPE.text, []);
+      containerInfo.insertBlock(targetIndex + 1, defaultBlock);
       syncState(containerInfo.getBlocks());
     }
 };
@@ -210,7 +212,7 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
           ...curBlockContent,
         ]);
         // force rerender the block component to avoid virtual dom diff problem with text node
-        prevBlock.setKey(Date.now());
+        prevBlock.setKey(generateUniqueId());
         prevBlock.setFocused(CursorPos.end);
         containerInfo.deleteBlockByKey(blockInfo.getKey());
       }
@@ -247,7 +249,7 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
       blockInfo.saveCurrentContent();
     }
     blockInfo.redoHistory();
-    blockInfo.setKey(Date.now());
+    blockInfo.setKey(generateUniqueId());
     syncState(containerInfo.getBlocks());
   }
   // undo
@@ -264,7 +266,7 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
     }
     (blockInfo as TextBlock).setPrevAction(TEXT_BLOCK_ACTION.origin);
     blockInfo.undoHistory();
-    blockInfo.setKey(Date.now());
+    blockInfo.setKey(generateUniqueId());
     syncState(containerInfo.getBlocks());
   }
   // shortcuts for selection
@@ -322,12 +324,13 @@ const handleListEnterPressed = (e: KeyboardEvent, blockInfo, containerInfo, sync
         containerInfo.deleteBlockByKey(blockInfo.getKey());
       } else {
         listBlock.setContent(listElements.slice(0, listElements.length - 1));
-        listBlock.setKey(Date.now() * Math.random());
+        listBlock.setKey(generateUniqueId());
       }
       const targetIndex: number = containerInfo.getBlockIndex(
         blockInfo.getKey()
       );
-      containerInfo.insertBlock(targetIndex + 1);
+      const defaultBlock = new TextBlock(generateUniqueId(), BLOCK_TYPE.text, []);
+      containerInfo.insertBlock(targetIndex + 1, defaultBlock);
       syncState(containerInfo.getBlocks());
     }
     // follow native behaviour when enter create a new list element
