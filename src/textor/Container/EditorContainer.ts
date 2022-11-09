@@ -1,6 +1,6 @@
 import { EditorBlock } from "../Block/EditorBlock/EditorBlock";
 import { TextBlock } from "../Block/TextBlock/TextBlock";
-import { CursorPos } from "../Cursor/interfaces";
+import { CursorPos } from "../interfaces/CursorInterfaces";
 import { IClipboardInfo, ISelectedBlock } from "./interfaces";
 import { BLOCK_TYPE } from "../interfaces/EditorBlockInterfaces";
 
@@ -135,18 +135,25 @@ export class EditorContainer {
   exportContents() {
     console.log("raw data", this.getBlocks().slice());
     return this.blocks.map((block) => {
-      const cleanBlock = (block as TextBlock).contentCleanUp(
-        block.blockContents
-      );
+      let exportBlockContent;
+      if (block instanceof TextBlock) {
+        exportBlockContent = block.contentCleanUp(
+          block.blockContents
+        );
+        block.setContent(exportBlockContent)
+      } else {
+        exportBlockContent = block.getContents();
+      }
+
       console.log("exported data", {
         key: block.key,
-        contents: cleanBlock,
+        contents: exportBlockContent,
         type: block.type,
         nativeCopy: block.nativeCopy,
       });
       return {
         key: block.key,
-        contents: cleanBlock,
+        contents: exportBlockContent,
         type: block.type,
         nativeCopy: block.nativeCopy,
       };

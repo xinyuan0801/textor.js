@@ -2,7 +2,7 @@ import {getSelectionCharacterOffsetWithin} from "../../textor/utils/CursorManage
 import {BLOCK_TYPE} from "../../textor/interfaces/EditorBlockInterfaces";
 import {TextBlock} from "../../textor/Block/TextBlock/TextBlock";
 import {ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_TYPE} from "../../textor/interfaces/TextBlockInterfaces";
-import {CursorPos} from "../../textor/Cursor/interfaces";
+import {CursorPos} from "../../textor/interfaces/CursorInterfaces";
 import debounce from "lodash/debounce";
 import {safeJSONParse} from "../../textor/utils/Block/BlockManagement";
 import {ISelectedBlock} from "../../textor/Container/interfaces";

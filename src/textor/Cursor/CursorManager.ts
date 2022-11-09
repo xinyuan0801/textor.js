@@ -1,4 +1,4 @@
-import { CursorPos } from "./interfaces";
+import { CursorPos } from "../interfaces/CursorInterfaces";
 
 /**
  * set cursor at given position in textContent

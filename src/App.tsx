@@ -1,6 +1,6 @@
 import "./App.css";
 import { Container } from "./textor-react/Container/Container";
-import React, {useCallback, useState} from "react";
+import React, { useCallback, useState } from "react";
 import {
   HeadingBlock,
   HeadingTypeCode,
@@ -13,7 +13,7 @@ import { BLOCK_TYPE } from "./textor/interfaces/EditorBlockInterfaces";
 import { ListBlock } from "./textor/Block/ListBlock/ListBlock";
 import { useGenerateContainer } from "./textor-react/hooks/UseGenerateContainer";
 import { TextBlock } from "./textor/Block/TextBlock/TextBlock";
-import {generateUniqueId} from "./textor-react/utils/UniqueId";
+import { generateUniqueId } from "./textor-react/utils/UniqueId";
 
 function App() {
   const containerInstance = useGenerateContainer();
@@ -55,7 +55,10 @@ function App() {
           selectedInfo.selectionEnd
         );
         targetBlock.setKey(generateUniqueId());
-        console.log("after setting key", containerInstance.current.getBlocks().slice());
+        console.log(
+          "after setting key",
+          containerInstance.current.getBlocks().slice()
+        );
         memoSetBlockArray(containerInstance.current.getBlocks());
       }
     }

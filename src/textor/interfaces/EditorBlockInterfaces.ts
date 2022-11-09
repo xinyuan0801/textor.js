@@ -1,4 +1,4 @@
-import { CursorPos } from "../Cursor/interfaces";
+import { CursorPos } from "./CursorInterfaces";
 import {LinkedList} from "../utils/LinkedList/LinkedList";
 import {LinkedListNode} from "../utils/LinkedList/LinkedListNode";
 

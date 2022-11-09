@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import "../../style/Block.css";
-import { CursorPos } from "../../textor/Cursor/interfaces";
+import { CursorPos } from "../../textor/interfaces/CursorInterfaces";
 import { EditorBlock } from "../../textor/Block/EditorBlock/EditorBlock";
 import { EditorContainer } from "../../textor/Container/EditorContainer";
 

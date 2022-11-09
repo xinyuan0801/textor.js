@@ -1,5 +1,8 @@
-import { CursorPos } from "../../Cursor/interfaces";
-import { BLOCK_TYPE, IEditorBlock } from "../../interfaces/EditorBlockInterfaces";
+import { CursorPos } from "../../interfaces/CursorInterfaces";
+import {
+  BLOCK_TYPE,
+  IEditorBlock,
+} from "../../interfaces/EditorBlockInterfaces";
 import { ITextBlockContent } from "../../interfaces/TextBlockInterfaces";
 import { LinkedList } from "../../utils/LinkedList/LinkedList";
 import { LinkedListNode } from "../../utils/LinkedList/LinkedListNode";
@@ -65,10 +68,9 @@ abstract class EditorBlock implements IEditorBlock {
   abstract isEmpty(): boolean;
 
   saveCurrentContent() {
-    console.log(this.ref.innerText);
     const newContents = this.sync(this.ref);
     this.setContent(newContents);
-    console.log(newContents.slice());
+    console.log("content saved");
   }
 
   /**
@@ -76,8 +78,7 @@ abstract class EditorBlock implements IEditorBlock {
    * @param newHistory
    */
   recordHistory(newHistory?: any[]): void {
-    const currentHistory =
-      newHistory || basicDeepClone(this.getContents());
+    const currentHistory = newHistory || basicDeepClone(this.getContents());
     // if pointer is not at latest history, create new history follow the era that pointer currently on
     if (this.historyPtr !== this.history.length - 1) {
       const newEraNode = new LinkedListNode(currentHistory);

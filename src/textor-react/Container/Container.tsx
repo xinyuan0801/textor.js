@@ -5,7 +5,7 @@ import { TextBlock } from "../../textor/Block/TextBlock/TextBlock";
 import "../../style/container.css";
 import { EditorBlock } from "../../textor/Block/EditorBlock/EditorBlock";
 import { BLOCK_TYPE } from "../../textor/interfaces/EditorBlockInterfaces";
-import { CursorPos } from "../../textor/Cursor/interfaces";
+import { CursorPos } from "../../textor/interfaces/CursorInterfaces";
 import { ListBlockComponent } from "../Blocks/ListBlock/ListBlockComponent";
 import { TextBlockComponent } from "../Blocks/TextBlock/TextBlockComponent";
 import { HeadingBlockComponent } from "../Blocks/HeadingBlock/HeadingBlockComponent";

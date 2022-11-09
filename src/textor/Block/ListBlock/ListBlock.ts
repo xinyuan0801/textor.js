@@ -4,7 +4,7 @@ import {
   TEXT_STYLE_ACTION,
 } from "../../interfaces/TextBlockInterfaces";
 import { EditorBlock } from "../EditorBlock/EditorBlock";
-import { CursorPos } from "../../Cursor/interfaces";
+import { CursorPos } from "../../interfaces/CursorInterfaces";
 import { IListBlock } from "../../interfaces/ListBlockInterfaces";
 import { findMarkedListElement, getListElementLength } from "../../utils/Block/ListBlockManagement";
 import { checkInSelection, findFirstContent } from "../../utils/Block/TextBlockManagement";

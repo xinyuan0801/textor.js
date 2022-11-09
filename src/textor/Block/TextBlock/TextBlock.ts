@@ -1,12 +1,14 @@
-import { EditorBlock } from "../EditorBlock/EditorBlock";
+import {EditorBlock} from "../EditorBlock/EditorBlock";
 import {
-  checkInSelection, checkSameContentType,
+  checkInSelection,
+  checkSameContentType,
   findFirstContent,
-  generateNewContent, mergeContent,
+  generateNewContent,
+  mergeContent,
   normalTextConverter,
 } from "../../utils/Block/TextBlockManagement";
-import { setCursorPos } from "../../Cursor/CursorManager";
-import { CursorPos } from "../../Cursor/interfaces";
+import {setCursorPos} from "../../Cursor/CursorManager";
+import {CursorPos} from "../../interfaces/CursorInterfaces";
 import {
   ITextBlock,
   ITextBlockContent,
@@ -14,7 +16,7 @@ import {
   TEXT_STYLE_ACTION,
   TEXT_TYPE,
 } from "../../interfaces/TextBlockInterfaces";
-import { LinkedList } from "../../utils/LinkedList/LinkedList";
+import {LinkedList} from "../../utils/LinkedList/LinkedList";
 
 export class TextBlock extends EditorBlock implements ITextBlock {
   prevAction: TEXT_BLOCK_ACTION;
@@ -55,7 +57,8 @@ export class TextBlock extends EditorBlock implements ITextBlock {
   }
 
   sync(currentContent: HTMLElement): ITextBlockContent[] {
-    return TextBlock.parseTextHTML(currentContent);
+    const parseContent = TextBlock.parseTextHTML(currentContent);
+    return this.contentCleanUp(parseContent);
   }
 
   generateCopyContent(
@@ -63,7 +66,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     contentStart: number,
     selectionStart: number,
     selectionEnd: number
-  ): ITextBlockContent | undefined {
+  ): ITextBlockContent {
     const blockContent = this.getContents();
     const targetContent = blockContent[contentIndex];
     const contentEnd =
@@ -175,10 +178,9 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       this.setContent(newBlockContent);
       console.log(newBlockContent);
       if (leftBound >= startIndex && rightBound <= endIndex) {
-        console.log("+1")
+        console.log("+1");
         currentContentIndex++;
-      }
-      else if (
+      } else if (
         leftBound <= startIndex &&
         rightBound <= endIndex &&
         rightBound >= startIndex
@@ -264,8 +266,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
         cleanBlockContents.push(content);
         prevContent = content;
       }
-    })
-    this.setContent(cleanBlockContents);
+    });
     return cleanBlockContents;
   }
 
@@ -280,7 +281,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       if (child.nodeName === "#text") {
         newRenderBlockContent.push({
           textType: TEXT_TYPE.normal,
-          textContent: normalTextConverter(child.textContent),
+          textContent: child.textContent,
           isMarked: false,
           isBold: false,
           isUnderline: false,
@@ -363,8 +364,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
       } else if (newType === TEXT_STYLE_ACTION.removeUnderline) {
         targetContent.isUnderline = false;
       }
-    }
-    else if (
+    } else if (
       contentStart <= selectionStart &&
       contentEnd <= selectionEnd &&
       contentEnd - 1 >= selectionStart
@@ -382,8 +382,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
         newType
       );
       blockContent.splice(contentIndex + 1, 0, newContent);
-    }
-    else if (
+    } else if (
       selectionStart <= contentStart &&
       selectionEnd - 1 >= contentStart &&
       selectionEnd <= contentEnd
@@ -401,8 +400,7 @@ export class TextBlock extends EditorBlock implements ITextBlock {
         newType
       );
       blockContent.splice(contentIndex, 0, newContent);
-    }
-    else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
+    } else if (contentStart <= selectionStart && contentEnd >= selectionEnd) {
       const targetText = targetContent.textContent;
       const newContentText = targetText.slice(
         selectionStart - contentStart,
@@ -428,4 +426,5 @@ export class TextBlock extends EditorBlock implements ITextBlock {
     }
     return blockContent;
   }
+
 }
