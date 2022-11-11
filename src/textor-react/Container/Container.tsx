@@ -19,8 +19,8 @@ const Container = (props) => {
   }, []);
 
   const handleClickContainer = () => {
-    const editorBlocks: EditorBlock[] = containerInstance.current.getBlocks();
-    const lastBlock: EditorBlock = editorBlocks[editorBlocks.length - 1];
+    const editorBlocks = containerInstance.current.getBlocks();
+    const lastBlock = editorBlocks[editorBlocks.length - 1];
     if (!lastBlock || lastBlock.ref.innerHTML !== "") {
       const defaultBlock = new TextBlock(
         generateUniqueId(),
@@ -36,7 +36,7 @@ const Container = (props) => {
     }
   };
 
-  const renderBlock = (blockInstance: EditorBlock) => {
+  const renderBlock = (blockInstance: EditorBlock<any>) => {
     const blockType = blockInstance.getType();
     if (blockType === BLOCK_TYPE.text) {
       return (

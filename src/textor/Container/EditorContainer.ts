@@ -5,15 +5,15 @@ import { IClipboardInfo, ISelectedBlock } from "./interfaces";
 import { BLOCK_TYPE } from "../interfaces/EditorBlockInterfaces";
 
 export class EditorContainer {
-  blocks: EditorBlock[];
+  blocks: EditorBlock<any>[];
   currentSelectedBlock: ISelectedBlock;
   clipboardInfo: IClipboardInfo;
 
-  constructor(initialBlock: EditorBlock[] = []) {
+  constructor(initialBlock: EditorBlock<any>[] = []) {
     this.blocks = initialBlock;
   }
 
-  getBlocks(): EditorBlock[] {
+  getBlocks(): EditorBlock<any>[] {
     return this.blocks;
   }
 
@@ -22,7 +22,7 @@ export class EditorContainer {
    * @param index
    * @param insertBlock
    */
-  insertBlock(index: number, insertBlock: EditorBlock): EditorBlock[] {
+  insertBlock(index: number, insertBlock: EditorBlock<any>): EditorBlock<any>[] {
     if (index === -1 || index === this.blocks.length) {
       this.blocks.push(insertBlock);
       return this.blocks.slice();
@@ -38,7 +38,7 @@ export class EditorContainer {
    * delete block with given blockKey, return editor contents after the deletion
    * @param blockKey
    */
-  deleteBlockByKey(blockKey: string): EditorBlock[] {
+  deleteBlockByKey(blockKey: string): EditorBlock<any>[] {
     const targetIndex = this.blocks.findIndex(
       (block) => block.key === blockKey
     );
@@ -49,7 +49,7 @@ export class EditorContainer {
     return this.blocks.slice();
   }
 
-  setBlocks(newBlocks: EditorBlock[]): void {
+  setBlocks(newBlocks: EditorBlock<any>[]): void {
     this.blocks = newBlocks;
   }
 
@@ -57,7 +57,7 @@ export class EditorContainer {
    * return block with given blockKey or return 0 if given block can not be found
    * @param blockKey
    */
-  getBlockByKey(blockKey: string): EditorBlock | 0 {
+  getBlockByKey(blockKey: string): EditorBlock<any> | 0 {
     return this.blocks.find((block) => block.key === blockKey) || 0;
   }
 
@@ -109,7 +109,7 @@ export class EditorContainer {
     blockContent: any,
     type: BLOCK_TYPE,
     blockKey?: number
-  ): EditorBlock {
+  ): EditorBlock<any> {
     const newBlockKey = blockKey ? blockKey : Date.now();
     if (type === BLOCK_TYPE.text) {
       return new TextBlock(newBlockKey, type, blockContent);

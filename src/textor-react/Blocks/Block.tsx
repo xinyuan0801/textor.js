@@ -14,7 +14,7 @@ const Block = React.memo((props) => {
     outerContentEditable = true,
     ...config
   }: {
-    blockInfo: EditorBlock;
+    blockInfo: EditorBlock<any>;
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
     renderContent: (EditorBlock) => HTMLElement;

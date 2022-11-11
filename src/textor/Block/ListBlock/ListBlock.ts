@@ -11,7 +11,7 @@ import { checkInSelection, findFirstContent } from "../../utils/Block/TextBlockM
 import { TextBlock } from "../TextBlock/TextBlock";
 import { setCursorPos } from "../../Cursor/CursorManager";
 
-export class ListBlock extends EditorBlock implements IListBlock {
+export class ListBlock extends EditorBlock<ITextBlockContent[][]> implements IListBlock {
   blockContents: ITextBlockContent[][];
   prevAction: TEXT_BLOCK_ACTION;
 
@@ -33,7 +33,7 @@ export class ListBlock extends EditorBlock implements IListBlock {
     return this.blockContents;
   }
 
-  copyContent(startIndex?: number, endIndex?: number): ITextBlockContent[] {
+  copyContent(startIndex?: number, endIndex?: number): ITextBlockContent[][] {
     return [];
   }
 

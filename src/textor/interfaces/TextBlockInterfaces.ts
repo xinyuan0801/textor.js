@@ -7,15 +7,15 @@ enum TEXT_BLOCK_ACTION {
   origin = "origin"
 }
 
-interface ITextBlock extends Omit<IEditorBlock, "blockContents" | "sync"> {
+interface ITextBlock extends IEditorBlock<ITextBlockContent[]> {
   prevAction: TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION;
   blockContents: ITextBlockContent[];
 
-  getContents(): ITextBlockContent[];
+  // getContents(): ITextBlockContent[];
   getTotalContentLength(): number;
   setPrevAction(newAction: TEXT_BLOCK_ACTION): void;
   getPrevAction(): TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION
-  sync(currentContent: ChildNode): ITextBlockContent[];
+  // sync(currentContent: ChildNode): ITextBlockContent[];
   generateCopyContent(
     contentIndex: number,
     contentStart: number,

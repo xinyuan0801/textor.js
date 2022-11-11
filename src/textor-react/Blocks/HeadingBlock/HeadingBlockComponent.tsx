@@ -22,7 +22,7 @@ const HeadingBlockComponent = (props) => {
     containerInfo,
     syncState,
   }: {
-    blockInfo: EditorBlock;
+    blockInfo: EditorBlock<any>;
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
   } = props;
@@ -51,7 +51,7 @@ const HeadingBlockComponent = (props) => {
     }
   };
 
-  const renderContent = (blockInfo: EditorBlock) => {
+  const renderContent = (blockInfo: EditorBlock<any>) => {
     const headingBlockContent = (blockInfo as HeadingBlock).getContents();
     return parseHeadingBlockContents(headingBlockContent);
   };

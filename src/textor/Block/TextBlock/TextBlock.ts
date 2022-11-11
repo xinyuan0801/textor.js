@@ -18,7 +18,7 @@ import {
 } from "../../interfaces/TextBlockInterfaces";
 import {LinkedList} from "../../utils/LinkedList/LinkedList";
 
-export class TextBlock extends EditorBlock implements ITextBlock {
+export class TextBlock extends EditorBlock<ITextBlockContent[]> implements ITextBlock {
   prevAction: TEXT_BLOCK_ACTION;
   blockContents: ITextBlockContent[];
 

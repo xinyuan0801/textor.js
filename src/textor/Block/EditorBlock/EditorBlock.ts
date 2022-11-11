@@ -3,22 +3,21 @@ import {
   BLOCK_TYPE,
   IEditorBlock,
 } from "../../interfaces/EditorBlockInterfaces";
-import { ITextBlockContent } from "../../interfaces/TextBlockInterfaces";
 import { LinkedList } from "../../utils/LinkedList/LinkedList";
 import { LinkedListNode } from "../../utils/LinkedList/LinkedListNode";
 import { basicDeepClone } from "../../utils/Block/EditorBlockManagement";
 
-abstract class EditorBlock implements IEditorBlock {
+abstract class EditorBlock<T> implements IEditorBlock<T> {
   //unique identifier for each text block
   key: string;
   type: BLOCK_TYPE;
-  blockContents: any;
+  blockContents: T;
   // block dom element
   ref: HTMLElement;
   // block current state in undo/redo system
-  currentEra: LinkedListNode<any>;
+  currentEra: LinkedListNode<T>;
   // doubly linked list for all undo/redo history
-  history: LinkedList<any>;
+  history: LinkedList<T>;
   // index of the current state in undo/redo history
   historyPtr: number;
   // use native copy if true, else use custom copy
@@ -27,7 +26,7 @@ abstract class EditorBlock implements IEditorBlock {
   protected constructor(
     key: string,
     type: BLOCK_TYPE,
-    blockContents: any,
+    blockContents: T,
     ref?: HTMLElement
   ) {
     this.key = key;
@@ -36,7 +35,7 @@ abstract class EditorBlock implements IEditorBlock {
     this.ref = ref;
     this.historyPtr = 0;
     this.nativeCopy = true;
-    this.history = new LinkedList<any>(blockContents);
+    this.history = new LinkedList<T>(blockContents);
     this.currentEra = this.history.head.next;
   }
 
@@ -50,7 +49,7 @@ abstract class EditorBlock implements IEditorBlock {
    * sync current dom element into blockContents structure
    * @param currentContent
    */
-  abstract sync(currentContent: ChildNode): any;
+  abstract sync(currentContent: ChildNode): T;
 
   /**
    * copy content within startIndex and endIndex and return in blockContents format
@@ -60,7 +59,7 @@ abstract class EditorBlock implements IEditorBlock {
   abstract copyContent(
     startIndex?: number,
     endIndex?: number
-  ): ITextBlockContent[];
+  ): T;
 
   /**
    * return true if block is empty, else return false
@@ -77,7 +76,7 @@ abstract class EditorBlock implements IEditorBlock {
    * record newest state in undo/redo history, use newHistory or current block contents if not provided.
    * @param newHistory
    */
-  recordHistory(newHistory?: any[]): void {
+  recordHistory(newHistory?: T): void {
     const currentHistory = newHistory || basicDeepClone(this.getContents());
     // if pointer is not at latest history, create new history follow the era that pointer currently on
     if (this.historyPtr !== this.history.length - 1) {
@@ -127,11 +126,11 @@ abstract class EditorBlock implements IEditorBlock {
     this.ref = blockRef;
   }
 
-  getContents(): (ITextBlockContent | ITextBlockContent[])[] {
+  getContents(): T {
     return this.blockContents;
   }
 
-  setContent(blockContents: (ITextBlockContent | ITextBlockContent[])[]): void {
+  setContent(blockContents: T): void {
     this.blockContents = blockContents;
   }
 
@@ -151,7 +150,7 @@ abstract class EditorBlock implements IEditorBlock {
     this.type = newType;
   }
 
-  getCurrEra(): LinkedListNode<(ITextBlockContent | ITextBlockContent[])[]> {
+  getCurrEra(): LinkedListNode<T> {
     return this.currentEra;
   }
 

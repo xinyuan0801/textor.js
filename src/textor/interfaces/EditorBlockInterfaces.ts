@@ -2,28 +2,28 @@ import { CursorPos } from "./CursorInterfaces";
 import {LinkedList} from "../utils/LinkedList/LinkedList";
 import {LinkedListNode} from "../utils/LinkedList/LinkedListNode";
 
-interface IEditorBlock {
+interface IEditorBlock<T> {
   key: string;
   type: BLOCK_TYPE;
-  blockContents: any;
+  blockContents: T;
   ref: HTMLElement;
-  history: LinkedList<any>;
+  history: LinkedList<T>;
   historyPtr: number;
-  currentEra: LinkedListNode<any>;
+  currentEra: LinkedListNode<T>;
 
   setFocused(position: CursorPos): void;
-  sync(currentContent: ChildNode): any;
+  sync(currentContent: ChildNode): T;
   getRef(): HTMLElement;
   setRef(blockRef: HTMLElement): void;
-  getContents(): any;
-  setContent(blockContents: any): void;
-  copyContent(startIndex?: number, endIndex?: number): any;
+  getContents(): T;
+  setContent(blockContents: T): void;
+  copyContent(startIndex?: number, endIndex?: number): T;
   getKey(): string;
   setKey(newKey: string);
   getType(): BLOCK_TYPE;
   recordHistory(): void;
   undoHistory(): void;
-  redoHistory(newHistory?: any[]): void;
+  redoHistory(newHistory?: T[]): void;
 }
 
 enum BLOCK_TYPE {
