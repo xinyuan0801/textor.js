@@ -1,4 +1,4 @@
-import { CursorPos } from "./CursorInterfaces";
+import { CursorPosEnum } from "./CursorInterfaces";
 import {LinkedList} from "../utils/LinkedList/LinkedList";
 import {LinkedListNode} from "../utils/LinkedList/LinkedListNode";
 
@@ -11,7 +11,7 @@ interface IEditorBlock<T> {
   historyPtr: number;
   currentEra: LinkedListNode<T>;
 
-  setFocused(position: CursorPos): void;
+  setFocused(position: CursorPosEnum): void;
   sync(currentContent: ChildNode): T;
   getRef(): HTMLElement;
   setRef(blockRef: HTMLElement): void;
@@ -27,10 +27,10 @@ interface IEditorBlock<T> {
 }
 
 enum BLOCK_TYPE {
-  text = "text", // text with different styles
-  heading = "heading", // heading text
-  list = "list", // list text
-  image = "image", // image
+  TEXT = "TEXT", // text with different styles
+  HEADING = "HEADING", // heading text
+  LIST = "LIST", // list text
+  IMAGE = "IMAGE", // image
 }
 
 export { IEditorBlock, BLOCK_TYPE };

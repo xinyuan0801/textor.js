@@ -1,4 +1,4 @@
-import { CursorPos } from "../interfaces/CursorInterfaces";
+import { CursorPosEnum } from "../interfaces/CursorInterfaces";
 
 /**
  * set cursor at given position in textContent
@@ -7,9 +7,9 @@ import { CursorPos } from "../interfaces/CursorInterfaces";
  */
 export function setCursorPos(
   textContent: HTMLElement | ChildNode,
-  position: CursorPos
+  position: CursorPosEnum
 ) {
-  const isStart = position === CursorPos.start;
+  const isStart = position === CursorPosEnum.START;
   const range = document.createRange();
   range.selectNodeContents(textContent);
   range.collapse(isStart);

@@ -1,15 +1,18 @@
-import React, { useCallback } from "react";
+import React, {useCallback} from "react";
 
-import { TextBlock } from "../../textor/Block/TextBlock/TextBlock";
+import {EditorBlock} from "../../textor/Block/EditorBlock/EditorBlock";
+
+import {BLOCK_TYPE} from "../../textor/interfaces/EditorBlockInterfaces"
+
+import {CursorPosEnum} from "../../textor/interfaces/CursorInterfaces"
+
+import {TextBlock} from "../../textor/Block/TextBlock/TextBlock";
 
 import "../../style/container.css";
-import { EditorBlock } from "../../textor/Block/EditorBlock/EditorBlock";
-import { BLOCK_TYPE } from "../../textor/interfaces/EditorBlockInterfaces";
-import { CursorPos } from "../../textor/interfaces/CursorInterfaces";
-import { ListBlockComponent } from "../Blocks/ListBlock/ListBlockComponent";
-import { TextBlockComponent } from "../Blocks/TextBlock/TextBlockComponent";
-import { HeadingBlockComponent } from "../Blocks/HeadingBlock/HeadingBlockComponent";
-import { generateUniqueId } from "../utils/UniqueId";
+import {ListBlockComponent} from "../Blocks/ListBlock/ListBlockComponent";
+import {TextBlockComponent} from "../Blocks/TextBlock/TextBlockComponent";
+import {HeadingBlockComponent} from "../Blocks/HeadingBlock/HeadingBlockComponent";
+import {generateUniqueId} from "../utils/UniqueId";
 
 const Container = (props) => {
   const { containerInstance, blockArray, setBlockArray } = props;
@@ -24,7 +27,7 @@ const Container = (props) => {
     if (!lastBlock || lastBlock.ref.innerHTML !== "") {
       const defaultBlock = new TextBlock(
         generateUniqueId(),
-        BLOCK_TYPE.text,
+        BLOCK_TYPE.TEXT,
         []
       );
       containerInstance.current.insertBlock(-1, defaultBlock);
@@ -32,13 +35,13 @@ const Container = (props) => {
       // due to useRef, manually calling rendering
       setBlockArray(blocksArray);
     } else {
-      lastBlock.setFocused(CursorPos.end);
+      lastBlock.setFocused(CursorPosEnum.END);
     }
   };
 
   const renderBlock = (blockInstance: EditorBlock<any>) => {
     const blockType = blockInstance.getType();
-    if (blockType === BLOCK_TYPE.text) {
+    if (blockType === BLOCK_TYPE.TEXT) {
       return (
         <TextBlockComponent
           key={blockInstance.key}
@@ -48,7 +51,7 @@ const Container = (props) => {
           syncState={syncBlockState}
         ></TextBlockComponent>
       );
-    } else if (blockType === BLOCK_TYPE.list) {
+    } else if (blockType === BLOCK_TYPE.LIST) {
       return (
         <ListBlockComponent
           key={blockInstance.key}
@@ -58,7 +61,7 @@ const Container = (props) => {
           syncState={syncBlockState}
         ></ListBlockComponent>
       );
-    } else if (blockType === BLOCK_TYPE.heading) {
+    } else if (blockType === BLOCK_TYPE.HEADING) {
       return (
         <HeadingBlockComponent
           key={blockInstance.key}

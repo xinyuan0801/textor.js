@@ -1,7 +1,7 @@
 import { EditorBlock } from "../Block/EditorBlock/EditorBlock";
 import { TextBlock } from "../Block/TextBlock/TextBlock";
-import { CursorPos } from "../interfaces/CursorInterfaces";
-import { IClipboardInfo, ISelectedBlock } from "./interfaces";
+import { CursorPosEnum } from "../interfaces/CursorInterfaces";
+import { IClipboardInfo, ISelectedBlock } from "../interfaces/EditorContainerInterfaces";
 import { BLOCK_TYPE } from "../interfaces/EditorBlockInterfaces";
 
 export class EditorContainer {
@@ -75,7 +75,7 @@ export class EditorContainer {
    * @param index
    * @param position
    */
-  setFocusByIndex(index: number, position: CursorPos): void {
+  setFocusByIndex(index: number, position: CursorPosEnum): void {
     this.blocks[index].setFocused(position);
   }
 
@@ -84,7 +84,7 @@ export class EditorContainer {
    * @param key
    * @param position
    */
-  setFocusByKey(key: string, position: CursorPos): void {
+  setFocusByKey(key: string, position: CursorPosEnum): void {
     const targetBlock = this.blocks.find((block) => block.key === key);
     targetBlock.setFocused(position);
   }
@@ -111,7 +111,7 @@ export class EditorContainer {
     blockKey?: number
   ): EditorBlock<any> {
     const newBlockKey = blockKey ? blockKey : Date.now();
-    if (type === BLOCK_TYPE.text) {
+    if (type === BLOCK_TYPE.TEXT) {
       return new TextBlock(newBlockKey, type, blockContent);
     }
   }

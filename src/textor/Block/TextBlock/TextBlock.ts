@@ -8,7 +8,7 @@ import {
   normalTextConverter,
 } from "../../utils/Block/TextBlockManagement";
 import {setCursorPos} from "../../Cursor/CursorManager";
-import {CursorPos} from "../../interfaces/CursorInterfaces";
+import {CursorPosEnum} from "../../interfaces/CursorInterfaces";
 import {
   ITextBlock,
   ITextBlockContent,
@@ -32,7 +32,7 @@ export class TextBlock extends EditorBlock<ITextBlockContent[]> implements IText
     this.nativeCopy = false;
   }
 
-  setFocused(position: CursorPos): void {
+  setFocused(position: CursorPosEnum): void {
     setCursorPos(this.ref, position);
   }
 

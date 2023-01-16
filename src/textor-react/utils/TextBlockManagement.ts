@@ -2,10 +2,10 @@ import {getSelectionCharacterOffsetWithin} from "../../textor/utils/CursorManage
 import {BLOCK_TYPE} from "../../textor/interfaces/EditorBlockInterfaces";
 import {TextBlock} from "../../textor/Block/TextBlock/TextBlock";
 import {ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_TYPE} from "../../textor/interfaces/TextBlockInterfaces";
-import {CursorPos} from "../../textor/interfaces/CursorInterfaces";
+import {CursorPosEnum} from "../../textor/interfaces/CursorInterfaces";
 import debounce from "lodash/debounce";
 import {safeJSONParse} from "../../textor/utils/Block/BlockManagement";
-import {ISelectedBlock} from "../../textor/Container/interfaces";
+import {ISelectedBlock} from "../../textor/interfaces/EditorContainerInterfaces";
 import {ListBlock} from "../../textor/Block/ListBlock/ListBlock";
 import {generateUniqueId} from "./UniqueId";
 
@@ -21,9 +21,9 @@ function handleTextBackspace(e, blockInfo, containerInfo, compositionInput, sync
   const caretPos = getSelectionCharacterOffsetWithin(e.target);
   const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
   if (
-    blockInfo.getType() === BLOCK_TYPE.text ||
-    blockInfo.getType() === BLOCK_TYPE.heading ||
-    blockInfo.getType() === BLOCK_TYPE.list
+    blockInfo.getType() === BLOCK_TYPE.TEXT ||
+    blockInfo.getType() === BLOCK_TYPE.HEADING ||
+    blockInfo.getType() === BLOCK_TYPE.LIST
   ) {
     const textBlock = blockInfo as TextBlock;
     // if new type of action, save the current state
@@ -40,7 +40,7 @@ function handleTextBackspace(e, blockInfo, containerInfo, compositionInput, sync
     savingBlockContent(blockInfo, compositionInput);
     const prevBlock = containerInfo.getBlocks()[selfIndex - 1];
     if (prevBlock.getType() !== blockInfo.getType()) {
-      prevBlock.setFocused(CursorPos.end);
+      prevBlock.setFocused(CursorPosEnum.END);
       return;
     }
     if (prevBlock.ref.innerHTML === "") {
@@ -53,7 +53,7 @@ function handleTextBackspace(e, blockInfo, containerInfo, compositionInput, sync
       ]);
       // force rerender the block component to avoid virtual dom diff problem with text node
       prevBlock.setKey(generateUniqueId());
-      prevBlock.setFocused(CursorPos.end);
+      prevBlock.setFocused(CursorPosEnum.END);
       containerInfo.deleteBlockByKey(blockInfo.getKey());
     }
     syncState(containerInfo.getBlocks());
@@ -91,13 +91,13 @@ function handleTextBlur(blockInfo, compositionInput) {
 function handleTextPaste(e, blockInfo, containerInfo, syncState) {
   const plainText = e.clipboardData.getData("Text");
   const containerClipboard = containerInfo.getClipboardInfo();
-  console.log("custom copy");
   e.preventDefault();
   const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
   const contentText = containerClipboard?.textContext || plainText;
   const pasteContent: { key: string; textContent: ITextBlockContent[] } =
     safeJSONParse(contentText) || {};
   if (pasteContent && pasteContent.key === "lovetiktok") {
+    console.log("custom copy");
     (blockInfo as TextBlock).insertBlockContents(
       pasteContent.textContent,
       caretPos.start
@@ -130,7 +130,7 @@ const handleTextSelection = (blockInfo, containerInfo) => {
 };
 
 const handleEnterPressed = (e: KeyboardEvent, containerInfo, blockInfo, syncState, compositionInput) => {
-    if (blockInfo.getType() === BLOCK_TYPE.list) {
+    if (blockInfo.getType() === BLOCK_TYPE.LIST) {
       handleListEnterPressed(e, blockInfo, containerInfo, syncState);
     } else {
       e.preventDefault();
@@ -141,7 +141,7 @@ const handleEnterPressed = (e: KeyboardEvent, containerInfo, blockInfo, syncStat
       const targetIndex: number = containerInfo.getBlockIndex(
         blockInfo.getKey()
       );
-      const defaultBlock = new TextBlock(generateUniqueId(), BLOCK_TYPE.text, []);
+      const defaultBlock = new TextBlock(generateUniqueId(), BLOCK_TYPE.TEXT, []);
       containerInfo.insertBlock(targetIndex + 1, defaultBlock);
       syncState(containerInfo.getBlocks());
     }
@@ -156,7 +156,7 @@ const handleBlockBackspaceRemove = (e: KeyboardEvent, containerInfo, blockInfo, 
     const nextFocusedBlockIndex =
       selfIndex === 0 ? selfIndex + 1 : selfIndex - 1;
     if (containerInfo.getBlocks().length !== 1) {
-      containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPos.end);
+      containerInfo.setFocusByIndex(nextFocusedBlockIndex, CursorPosEnum.END);
     }
   }
   containerInfo.deleteBlockByKey(blockInfo.getKey());
@@ -175,9 +175,9 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
     const caretPos = getSelectionCharacterOffsetWithin(e.target);
     const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
     if (
-      blockInfo.getType() === BLOCK_TYPE.text ||
-      blockInfo.getType() === BLOCK_TYPE.heading ||
-      blockInfo.getType() === BLOCK_TYPE.list
+      blockInfo.getType() === BLOCK_TYPE.TEXT ||
+      blockInfo.getType() === BLOCK_TYPE.HEADING ||
+      blockInfo.getType() === BLOCK_TYPE.LIST
     ) {
       const textBlock = blockInfo as TextBlock;
       // if new type of action, save the current state
@@ -200,7 +200,7 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
       }
       const prevBlock = containerInfo.getBlocks()[selfIndex - 1];
       if (prevBlock.getType() !== blockInfo.getType()) {
-        prevBlock.setFocused(CursorPos.end);
+        prevBlock.setFocused(CursorPosEnum.END);
         return;
       }
       if (prevBlock.ref.innerHTML === "") {
@@ -213,7 +213,7 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
         ]);
         // force rerender the block component to avoid virtual dom diff problem with text node
         prevBlock.setKey(generateUniqueId());
-        prevBlock.setFocused(CursorPos.end);
+        prevBlock.setFocused(CursorPosEnum.END);
         containerInfo.deleteBlockByKey(blockInfo.getKey());
       }
       syncState(containerInfo.getBlocks());
@@ -227,7 +227,7 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
       e.preventDefault();
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       if (selfIndex < containerInfo.getBlocks().length - 1) {
-        containerInfo.setFocusByIndex(selfIndex + 1, CursorPos.start);
+        containerInfo.setFocusByIndex(selfIndex + 1, CursorPosEnum.START);
       }
     }
   }
@@ -238,7 +238,7 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
       e.preventDefault();
       const selfIndex = containerInfo.getBlockIndex(blockInfo.getKey());
       if (selfIndex > 0) {
-        containerInfo.setFocusByIndex(selfIndex - 1, CursorPos.end);
+        containerInfo.setFocusByIndex(selfIndex - 1, CursorPosEnum.END);
       }
     }
   }
@@ -282,9 +282,9 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
   // only activate when character is input
   else if (/^.$/u.test(e.key)) {
     if (
-      blockInfo.getType() === BLOCK_TYPE.text ||
-      blockInfo.getType() === BLOCK_TYPE.heading ||
-      blockInfo.getType() === BLOCK_TYPE.list
+      blockInfo.getType() === BLOCK_TYPE.TEXT ||
+      blockInfo.getType() === BLOCK_TYPE.HEADING ||
+      blockInfo.getType() === BLOCK_TYPE.LIST
     ) {
       // new type of action happened, record current state for undo redo
       if (
@@ -329,7 +329,7 @@ const handleListEnterPressed = (e: KeyboardEvent, blockInfo, containerInfo, sync
       const targetIndex: number = containerInfo.getBlockIndex(
         blockInfo.getKey()
       );
-      const defaultBlock = new TextBlock(generateUniqueId(), BLOCK_TYPE.text, []);
+      const defaultBlock = new TextBlock(generateUniqueId(), BLOCK_TYPE.TEXT, []);
       containerInfo.insertBlock(targetIndex + 1, defaultBlock);
       syncState(containerInfo.getBlocks());
     }

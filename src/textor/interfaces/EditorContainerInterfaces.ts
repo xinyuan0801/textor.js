@@ -1,4 +1,4 @@
-import {BLOCK_TYPE} from "../interfaces/EditorBlockInterfaces";
+import {BLOCK_TYPE} from "./EditorBlockInterfaces";
 
 interface ISelectedBlock {
   blockKey: string;

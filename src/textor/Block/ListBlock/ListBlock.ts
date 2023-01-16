@@ -4,7 +4,7 @@ import {
   TEXT_STYLE_ACTION,
 } from "../../interfaces/TextBlockInterfaces";
 import { EditorBlock } from "../EditorBlock/EditorBlock";
-import { CursorPos } from "../../interfaces/CursorInterfaces";
+import { CursorPosEnum } from "../../interfaces/CursorInterfaces";
 import { IListBlock } from "../../interfaces/ListBlockInterfaces";
 import { findMarkedListElement, getListElementLength } from "../../utils/Block/ListBlockManagement";
 import { checkInSelection, findFirstContent } from "../../utils/Block/TextBlockManagement";
@@ -37,7 +37,7 @@ export class ListBlock extends EditorBlock<ITextBlockContent[][]> implements ILi
     return [];
   }
 
-  setFocused(position: CursorPos): void {
+  setFocused(position: CursorPosEnum): void {
     const listElements = this.ref.childNodes[0];
     setCursorPos(listElements, position);
   }

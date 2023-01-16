@@ -1,4 +1,4 @@
-import { CursorPos } from "../../interfaces/CursorInterfaces";
+import { CursorPosEnum } from "../../interfaces/CursorInterfaces";
 import {
   BLOCK_TYPE,
   IEditorBlock,
@@ -43,7 +43,7 @@ abstract class EditorBlock<T> implements IEditorBlock<T> {
    * set block as focused, in the position provided
    * @param position
    */
-  abstract setFocused(position: CursorPos): void;
+  abstract setFocused(position: CursorPosEnum): void;
 
   /**
    * sync current dom element into blockContents structure

@@ -8,7 +8,7 @@ export class LinkedListNode<NodeType> {
         this._val = val;
         this._prev = null;
         this._next = null;
-        this.isDummy = isDummy;
+        this.isDummy = isDummy || false;
     }
 
     get val(): NodeType {

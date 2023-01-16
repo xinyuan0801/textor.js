@@ -1,4 +1,4 @@
-export enum CursorPos {
-    start,
-    end
+export enum CursorPosEnum {
+    START,
+    END
 }

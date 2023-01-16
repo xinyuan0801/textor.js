@@ -28,8 +28,8 @@ function App() {
 
   const addHeading = (headingSize: HeadingTypeCode) => {
     const headingBlock = new HeadingBlock(
-      Date.now(),
-      BLOCK_TYPE.heading,
+      generateUniqueId(),
+      BLOCK_TYPE.HEADING,
       [{ textType: TEXT_TYPE.heading, textContent: "heading测试" }],
       headingSize
     );
@@ -65,7 +65,7 @@ function App() {
   };
 
   const addList = () => {
-    const listBlock = new ListBlock(Date.now(), BLOCK_TYPE.list, [
+    const listBlock = new ListBlock(generateUniqueId(), BLOCK_TYPE.LIST, [
       [{ textContent: "", textType: TEXT_TYPE.list }],
     ]);
     const newEditorContents = containerInstance.current.insertBlock(
@@ -76,6 +76,7 @@ function App() {
     // // due to useRef, manually calling rerendering
     memoSetBlockArray(newEditorContents);
   };
+
 
   return (
     <div className="App">

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import "../../style/Block.css";
-import { CursorPos } from "../../textor/interfaces/CursorInterfaces";
+import { CursorPosEnum } from "../../textor/interfaces/CursorInterfaces";
 import { EditorBlock } from "../../textor/Block/EditorBlock/EditorBlock";
 import { EditorContainer } from "../../textor/Container/EditorContainer";
 
@@ -23,7 +23,7 @@ const Block = React.memo((props) => {
   } = props;
 
   useEffect(() => {
-    blockInfo.setFocused(CursorPos.end);
+    blockInfo.setFocused(CursorPosEnum.END);
   }, []);
 
   const collectRef = (el) => {

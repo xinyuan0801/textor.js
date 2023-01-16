@@ -1,6 +1,5 @@
 import {useRef} from "react";
 import { EditorContainer } from "../../textor/Container/EditorContainer";
-
 interface IContainerInstance {
   current: EditorContainer;
 }
