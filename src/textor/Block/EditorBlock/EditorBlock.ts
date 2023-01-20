@@ -69,7 +69,6 @@ abstract class EditorBlock<T> implements IEditorBlock<T> {
   saveCurrentContent() {
     const newContents = this.sync(this.ref);
     this.setContent(newContents);
-    console.log("content saved");
   }
 
   /**
@@ -108,10 +107,11 @@ abstract class EditorBlock<T> implements IEditorBlock<T> {
   }
 
   undoHistory(): void {
-    console.log("undo");
+    console.log("undo", this.historyPtr);
     if (this.historyPtr === 0) {
       return;
     }
+    console.log("what")
     this.historyPtr--;
     this.currentEra = this.currentEra.prev;
     this.setContent(basicDeepClone(this.currentEra.val));

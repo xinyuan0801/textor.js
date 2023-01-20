@@ -55,6 +55,7 @@ interface ITextBlockContent {
   isUnderline?: boolean;
   linkHref?: string;
   headingSize?: HeadingTypeCode;
+  node?: HTMLElement;
 }
 
 export {

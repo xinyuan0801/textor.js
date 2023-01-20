@@ -60,23 +60,6 @@ function handleTextBackspace(e, blockInfo, containerInfo, compositionInput, sync
   }
 }
 
-function handleTextCopy(blockInfo, containerInfo) {
-  const nativeCopy = blockInfo.getNativeCopy();
-  if (!nativeCopy) {
-    const plainText = window.getSelection().toString();
-    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-    const copiedContent = blockInfo.copyContent(caretPos.start, caretPos.end);
-    const copyTextInfo = { textContent: copiedContent, key: "lovetiktok" };
-    const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
-    containerInfo.setClipboardInfo({
-      plainText,
-      textContext: copyTextInfoJsonString,
-    });
-  } else {
-    containerInfo.setClipboardInfo(null);
-  }
-}
-
 function handleTextBlur(blockInfo, compositionInput) {
   if (!compositionInput.current) {
     blockInfo.saveCurrentContent();
@@ -88,16 +71,30 @@ function handleTextBlur(blockInfo, compositionInput) {
   }
 }
 
+function handleTextCopy(blockInfo, containerInfo) {
+  const nativeCopy = blockInfo.getNativeCopy();
+  if (!nativeCopy) {
+    const plainText = window.getSelection().toString();
+    const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
+    const copiedContent = blockInfo.copyContent(caretPos.start, caretPos.end);
+    const copyTextInfo = { textContent: copiedContent};
+    const copyTextInfoJsonString = JSON.stringify(copyTextInfo);
+    containerInfo.setClipboardInfo({
+      plainText,
+      textContext: copyTextInfoJsonString,
+    });
+  }
+}
+
 function handleTextPaste(e, blockInfo, containerInfo, syncState) {
-  const plainText = e.clipboardData.getData("Text");
-  const containerClipboard = containerInfo.getClipboardInfo();
   e.preventDefault();
+  const nativeClipboardPlainText = e.clipboardData.getData("Text");
+  const containerClipboard = containerInfo.getClipboardInfo();
+  const containerClipboardPlainText = containerClipboard.plainText;
   const caretPos = getSelectionCharacterOffsetWithin(blockInfo.getRef());
-  const contentText = containerClipboard?.textContext || plainText;
-  const pasteContent: { key: string; textContent: ITextBlockContent[] } =
-    safeJSONParse(contentText) || {};
-  if (pasteContent && pasteContent.key === "lovetiktok") {
-    console.log("custom copy");
+  const pasteContent: { textContent: ITextBlockContent[] } =
+    safeJSONParse(containerClipboard.textContext);
+  if (containerClipboardPlainText === nativeClipboardPlainText) {
     (blockInfo as TextBlock).insertBlockContents(
       pasteContent.textContent,
       caretPos.start
@@ -106,7 +103,7 @@ function handleTextPaste(e, blockInfo, containerInfo, syncState) {
     syncState(containerInfo.getBlocks());
   } else {
     const newPlainContent: ITextBlockContent[] = [
-      { textContent: contentText, textType: TEXT_TYPE.normal },
+      { textContent: nativeClipboardPlainText, textType: TEXT_TYPE.normal },
     ];
     (blockInfo as TextBlock).insertBlockContents(
       newPlainContent,
@@ -268,16 +265,6 @@ function handleTextKeyDown(e, blockInfo, containerInfo, compositionInput, syncSt
     blockInfo.undoHistory();
     blockInfo.setKey(generateUniqueId());
     syncState(containerInfo.getBlocks());
-  }
-  // shortcuts for selection
-  else if (
-    (e.metaKey || e.altKey) &&
-    e.shiftKey &&
-    (e.code === "ArrowLeft" || e.code === "ArrowRight")
-  ) {
-    setTimeout(() => {
-      handleTextSelection(blockInfo, containerInfo);
-    }, 100);
   }
   // only activate when character is input
   else if (/^.$/u.test(e.key)) {

@@ -18,7 +18,10 @@ import {
 } from "../../interfaces/TextBlockInterfaces";
 import {LinkedList} from "../../utils/LinkedList/LinkedList";
 
-export class TextBlock extends EditorBlock<ITextBlockContent[]> implements ITextBlock {
+export class TextBlock
+  extends EditorBlock<ITextBlockContent[]>
+  implements ITextBlock
+{
   prevAction: TEXT_BLOCK_ACTION;
   blockContents: ITextBlockContent[];
 
@@ -122,14 +125,13 @@ export class TextBlock extends EditorBlock<ITextBlockContent[]> implements IText
         endIndex
       )
     ) {
-      selectedTexts.push(
-        this.generateCopyContent(
-          currentContentIndex,
-          leftBound,
-          startIndex,
-          endIndex
-        )
+      const newContent = this.generateCopyContent(
+        currentContentIndex,
+        leftBound,
+        startIndex,
+        endIndex
       );
+      selectedTexts.push(newContent);
       leftBound += currentContent[currentContentIndex].textContent.length;
       currentContentIndex++;
     }
@@ -176,7 +178,7 @@ export class TextBlock extends EditorBlock<ITextBlockContent[]> implements IText
         blockContents
       );
       this.setContent(newBlockContent);
-      console.log(newBlockContent);
+      console.log("test1", newBlockContent);
       if (leftBound >= startIndex && rightBound <= endIndex) {
         console.log("+1");
         currentContentIndex++;
@@ -196,7 +198,7 @@ export class TextBlock extends EditorBlock<ITextBlockContent[]> implements IText
       }
       leftBound += currentContentOriginLength;
     }
-    console.log(this.blockContents);
+    this.setContent(this.contentCleanUp(currentContent));
     this.recordHistory();
     this.setPrevAction(TEXT_BLOCK_ACTION.origin);
   }
@@ -253,6 +255,9 @@ export class TextBlock extends EditorBlock<ITextBlockContent[]> implements IText
    * @param blockContents
    */
   contentCleanUp(blockContents: ITextBlockContent[]): ITextBlockContent[] {
+    if (blockContents.length <= 1) {
+      return blockContents;
+    }
     let prevContent = blockContents[0];
     const cleanBlockContents = [blockContents[0]];
     // skip first element as it is already included
@@ -426,5 +431,4 @@ export class TextBlock extends EditorBlock<ITextBlockContent[]> implements IText
     }
     return blockContent;
   }
-
 }

@@ -6,11 +6,12 @@ import { BLOCK_TYPE } from "../interfaces/EditorBlockInterfaces";
 
 export class EditorContainer {
   blocks: EditorBlock<any>[];
-  currentSelectedBlock: ISelectedBlock;
+  currentSelectedBlock: any;
   clipboardInfo: IClipboardInfo;
 
   constructor(initialBlock: EditorBlock<any>[] = []) {
     this.blocks = initialBlock;
+    this.clipboardInfo = {plainText: "", textContext: ""}
   }
 
   getBlocks(): EditorBlock<any>[] {
@@ -66,7 +67,6 @@ export class EditorContainer {
    * @param blockKey
    */
   getBlockIndex(blockKey: string): number {
-    console.log(this.blocks.slice(), blockKey);
     return this.blocks.findIndex((block) => block.key === blockKey);
   }
 

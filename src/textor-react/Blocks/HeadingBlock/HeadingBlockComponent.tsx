@@ -72,7 +72,7 @@ const HeadingBlockComponent = (props) => {
       onCopy={() => handleTextCopy(blockInfo, containerInfo)}
       onBlur={() => handleTextBlur(blockInfo, compositionInput)}
       onPaste={(e) => handleTextPaste(e, blockInfo, containerInfo, syncState)}
-      onMouseUp={() => handleTextSelection(blockInfo, containerInfo)}
+      onSelect={() => handleTextSelection(blockInfo, containerInfo)}
       onKeyDown={(e) => handleTextKeyDown(e, blockInfo, containerInfo,compositionInput, syncState)}
     ></Block>
   );

@@ -1,4 +1,4 @@
-import { ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE } from "../../interfaces/TextBlockInterfaces";
+import {ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE} from "../../interfaces/TextBlockInterfaces";
 import {basicDeepClone} from "./EditorBlockManagement";
 
 /**
@@ -57,8 +57,10 @@ function generateNewContent(
     isMarked: parentContent.isMarked,
     isBold: parentContent.isBold,
     isUnderline: parentContent.isUnderline,
-    headingSize: parentContent.headingSize,
   };
+  if (parentContent.textType === TEXT_TYPE.heading) {
+    newContent.headingSize = parentContent.headingSize
+  }
   if (newType === undefined) {
     return newContent;
   }

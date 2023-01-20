@@ -37,6 +37,9 @@ const TextBlockComponent = React.memo((props) => {
             href={content.linkHref}
             contentEditable={false}
             key={Date.now() + index}
+            ref={(el) => {
+              content.node = el;
+            }}
           >
             {content.textContent}
           </a>
@@ -44,17 +47,39 @@ const TextBlockComponent = React.memo((props) => {
       }
       let baseElement = content.textContent;
       baseElement = content.isUnderline ? (
-        <u key={Date.now() * Math.random() + "underline"}>{baseElement}</u>
+        <u
+          key={Date.now() * Math.random() + "underline"}
+          ref={(el) => {
+            content.node = el;
+          }}
+        >
+          {baseElement}
+        </u>
       ) : (
         baseElement
       );
       baseElement = content.isBold ? (
-        <b key={Date.now() * Math.random() + "bold"}>{baseElement}</b>
+        <b
+          key={Date.now() * Math.random() + "bold"}
+          ref={(el) => {
+            content.node = el;
+          }}
+        >
+          {baseElement}
+        </b>
       ) : (
         baseElement
       );
       baseElement = content.isMarked ? (
-        <mark key={Date.now() * Math.random() + "marked"}>{baseElement}</mark>
+        <mark
+          key={Date.now() * Math.random() + "marked"}
+          ref={(el) => {
+            console.log(el);
+            content.node = el;
+          }}
+        >
+          {baseElement}
+        </mark>
       ) : (
         baseElement
       );
@@ -83,7 +108,7 @@ const TextBlockComponent = React.memo((props) => {
       onCopy={() => handleTextCopy(blockInfo, containerInfo)}
       onBlur={() => handleTextBlur(blockInfo, compositionInput)}
       onPaste={(e) => handleTextPaste(e, blockInfo, containerInfo, syncState)}
-      onMouseUp={() => handleTextSelection(blockInfo, containerInfo)}
+      onSelect={() => handleTextSelection(blockInfo, containerInfo)}
       onKeyDown={(e) =>
         handleTextKeyDown(
           e,
