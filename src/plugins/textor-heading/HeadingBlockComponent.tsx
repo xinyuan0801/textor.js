@@ -1,20 +1,13 @@
 import React from "react";
-import { Block } from "../Block";
-import { EditorBlock } from "../../../textor/Block/EditorBlock/EditorBlock";
-import { EditorContainer } from "../../../textor/Container/EditorContainer";
-import { ITextBlockContent } from "../../../textor/interfaces/TextBlockInterfaces";
+import { Block } from "../../textor-react/Blocks/Block";
+import { EditorContainer } from "../../textor/Container/EditorContainer";
+import { ITextBlockContent } from "../textor-text/TextBlockInterfaces";
 import {
-  HeadingBlock,
-  HeadingTypeCode,
-} from "../../../textor/Block/TextBlock/HeadingBlock";
-import {
-  handleTextBlur,
-  handleTextCopy,
   handleTextKeyDown,
-  handleTextPaste,
-  handleTextSelection
-} from "../../utils/TextBlockManagement";
-import {useCompositionInput} from "../../hooks/UseCompositionInput";
+} from "../textor-text/utils/TextBlockManagement";
+import {handleTextCopy, handleTextBlur, handleTextPaste, handleTextSelection} from "../utils/textContentManagement";
+import {useCompositionInput} from "../../textor-react/hooks/UseCompositionInput";
+import {HeadingTypeCode} from "./HeadingBlockPlugin";
 
 const HeadingBlockComponent = (props) => {
   const {
@@ -22,7 +15,7 @@ const HeadingBlockComponent = (props) => {
     containerInfo,
     syncState,
   }: {
-    blockInfo: EditorBlock<any>;
+    blockInfo: any;
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
   } = props;
@@ -32,7 +25,7 @@ const HeadingBlockComponent = (props) => {
   const parseHeadingBlockContents = (
     contents: ITextBlockContent[]
   ): HTMLElement[] | undefined => {
-    const headingBlockInfo = blockInfo as HeadingBlock;
+    const headingBlockInfo = blockInfo;
     const headingContent = contents[0];
     const baseElement = headingContent.textContent;
     const headingSize = headingBlockInfo.getHeadingType();
@@ -51,8 +44,8 @@ const HeadingBlockComponent = (props) => {
     }
   };
 
-  const renderContent = (blockInfo: EditorBlock<any>) => {
-    const headingBlockContent = (blockInfo as HeadingBlock).getContents();
+  const renderContent = (blockInfo: any) => {
+    const headingBlockContent = blockInfo.getContents();
     return parseHeadingBlockContents(headingBlockContent);
   };
 

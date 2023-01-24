@@ -1,21 +1,42 @@
-import { EditorBlock } from "../Block/EditorBlock/EditorBlock";
-import { TextBlock } from "../Block/TextBlock/TextBlock";
 import { CursorPosEnum } from "../interfaces/CursorInterfaces";
-import { IClipboardInfo, ISelectedBlock } from "../interfaces/EditorContainerInterfaces";
+import {
+  IClipboardInfo,
+  ISelectedBlock,
+} from "../interfaces/EditorContainerInterfaces";
 import { BLOCK_TYPE } from "../interfaces/EditorBlockInterfaces";
 
 export class EditorContainer {
-  blocks: EditorBlock<any>[];
+  blocks: any[];
   currentSelectedBlock: any;
   clipboardInfo: IClipboardInfo;
+  defaultBlock: any;
+  blockMap: Map<string, Function>;
 
-  constructor(initialBlock: EditorBlock<any>[] = []) {
+  constructor(initialBlock: any[] = []) {
     this.blocks = initialBlock;
-    this.clipboardInfo = {plainText: "", textContext: ""}
+    this.clipboardInfo = { plainText: "", textContext: "" };
+    this.defaultBlock = null;
+    this.blockMap = null;
   }
 
-  getBlocks(): EditorBlock<any>[] {
+  getBlocks(): any[] {
     return this.blocks;
+  }
+
+  getDefaultBlock(): any {
+    return this.defaultBlock;
+  }
+
+  setDefaultBlock(newBlock: any) {
+    this.defaultBlock = newBlock;
+  }
+
+  getBlockMap(): Map<string, Function> {
+    return this.blockMap;
+  }
+
+  setBlockMap(newBlockMap: Map<string, Function>) {
+    this.blockMap = newBlockMap;
   }
 
   /**
@@ -23,7 +44,10 @@ export class EditorContainer {
    * @param index
    * @param insertBlock
    */
-  insertBlock(index: number, insertBlock: EditorBlock<any>): EditorBlock<any>[] {
+  insertBlock(
+    index: number,
+    insertBlock: any
+  ): any[] {
     if (index === -1 || index === this.blocks.length) {
       this.blocks.push(insertBlock);
       return this.blocks.slice();
@@ -39,7 +63,7 @@ export class EditorContainer {
    * delete block with given blockKey, return editor contents after the deletion
    * @param blockKey
    */
-  deleteBlockByKey(blockKey: string): EditorBlock<any>[] {
+  deleteBlockByKey(blockKey: string): any[] {
     const targetIndex = this.blocks.findIndex(
       (block) => block.key === blockKey
     );
@@ -50,7 +74,7 @@ export class EditorContainer {
     return this.blocks.slice();
   }
 
-  setBlocks(newBlocks: EditorBlock<any>[]): void {
+  setBlocks(newBlocks: any[]): void {
     this.blocks = newBlocks;
   }
 
@@ -58,7 +82,7 @@ export class EditorContainer {
    * return block with given blockKey or return 0 if given block can not be found
    * @param blockKey
    */
-  getBlockByKey(blockKey: string): EditorBlock<any> | 0 {
+  getBlockByKey(blockKey: string): any | 0 {
     return this.blocks.find((block) => block.key === blockKey) || 0;
   }
 
@@ -109,11 +133,11 @@ export class EditorContainer {
     blockContent: any,
     type: BLOCK_TYPE,
     blockKey?: number
-  ): EditorBlock<any> {
+  ): any {
     const newBlockKey = blockKey ? blockKey : Date.now();
-    if (type === BLOCK_TYPE.TEXT) {
-      return new TextBlock(newBlockKey, type, blockContent);
-    }
+    const blockConstructor = this.getBlockMap().get(type);
+    // @ts-ignore
+    return new blockConstructor([newBlockKey], [], [type, blockContent]);
   }
 
   /**
@@ -136,11 +160,9 @@ export class EditorContainer {
     console.log("raw data", this.getBlocks().slice());
     return this.blocks.map((block) => {
       let exportBlockContent;
-      if (block instanceof TextBlock) {
-        exportBlockContent = block.contentCleanUp(
-          block.blockContents
-        );
-        block.setContent(exportBlockContent)
+      if (block.hasOwnProperty("contentCleanUp")) {
+        exportBlockContent = block.contentCleanUp(block.blockContents);
+        block.setContent(exportBlockContent);
       } else {
         exportBlockContent = block.getContents();
       }

@@ -1,37 +1,32 @@
-import React, {useCallback} from "react";
-
-import {EditorBlock} from "../../textor/Block/EditorBlock/EditorBlock";
-
-import {BLOCK_TYPE} from "../../textor/interfaces/EditorBlockInterfaces"
-
-import {CursorPosEnum} from "../../textor/interfaces/CursorInterfaces"
-
-import {TextBlock} from "../../textor/Block/TextBlock/TextBlock";
-
+import React, { useCallback } from "react";
+import { BLOCK_TYPE } from "../../textor/interfaces/EditorBlockInterfaces";
+import { CursorPosEnum } from "../../textor/interfaces/CursorInterfaces";
 import "../../style/container.css";
-import {ListBlockComponent} from "../Blocks/ListBlock/ListBlockComponent";
-import {TextBlockComponent} from "../Blocks/TextBlock/TextBlockComponent";
-import {HeadingBlockComponent} from "../Blocks/HeadingBlock/HeadingBlockComponent";
-import {generateUniqueId} from "../utils/UniqueId";
+import { generateUniqueId } from "../../utils/UniqueId";
+import { UsePluginInitialization } from "../hooks/UsePluginInitialization";
 
 const Container = (props) => {
-  const { containerInstance, blockArray, setBlockArray } = props;
+  const { textorInstance, blockArray, setBlockArray, plugins } = props;
+  const containerInstance = textorInstance.container;
+  const blockRenderMap = UsePluginInitialization(plugins);
 
   const syncBlockState = useCallback((newBlockArrayState) => {
     setBlockArray(newBlockArrayState.slice());
   }, []);
 
   const handleClickContainer = () => {
-    const editorBlocks = containerInstance.current.getBlocks();
+    const editorBlocks = containerInstance.getBlocks();
     const lastBlock = editorBlocks[editorBlocks.length - 1];
     if (!lastBlock || lastBlock.ref.innerHTML !== "") {
-      const defaultBlock = new TextBlock(
-        generateUniqueId(),
+      const defaultBlock = textorInstance.blockFactory(
         BLOCK_TYPE.TEXT,
-        []
+        [generateUniqueId()],
+        [],
+        [BLOCK_TYPE.TEXT, []]
       );
-      containerInstance.current.insertBlock(-1, defaultBlock);
-      const blocksArray = containerInstance.current.getBlocks().slice();
+      console.log(defaultBlock);
+      containerInstance.insertBlock(-1, defaultBlock);
+      const blocksArray = containerInstance.getBlocks().slice();
       // due to useRef, manually calling rendering
       setBlockArray(blocksArray);
     } else {
@@ -39,39 +34,18 @@ const Container = (props) => {
     }
   };
 
-  const renderBlock = (blockInstance: EditorBlock<any>) => {
+  const renderBlock = (blockInstance: any) => {
     const blockType = blockInstance.getType();
-    if (blockType === BLOCK_TYPE.TEXT) {
-      return (
-        <TextBlockComponent
-          key={blockInstance.key}
-          blockKey={blockInstance.key}
-          blockInfo={blockInstance}
-          containerInfo={containerInstance.current}
-          syncState={syncBlockState}
-        ></TextBlockComponent>
-      );
-    } else if (blockType === BLOCK_TYPE.LIST) {
-      return (
-        <ListBlockComponent
-          key={blockInstance.key}
-          blockKey={blockInstance.key}
-          blockInfo={blockInstance}
-          containerInfo={containerInstance.current}
-          syncState={syncBlockState}
-        ></ListBlockComponent>
-      );
-    } else if (blockType === BLOCK_TYPE.HEADING) {
-      return (
-        <HeadingBlockComponent
-          key={blockInstance.key}
-          blockKey={blockInstance.key}
-          blockInfo={blockInstance}
-          containerInfo={containerInstance.current}
-          syncState={syncBlockState}
-        ></HeadingBlockComponent>
-      );
-    }
+    const BlockRenderFunction = blockRenderMap.get(blockType);
+    return (
+      <BlockRenderFunction
+        key={blockInstance.key}
+        blockKey={blockInstance.key}
+        blockInfo={blockInstance}
+        containerInfo={containerInstance}
+        syncState={syncBlockState}
+      />
+    );
   };
 
   return (

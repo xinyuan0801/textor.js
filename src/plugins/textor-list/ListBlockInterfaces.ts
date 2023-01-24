@@ -1,5 +1,5 @@
-import {IEditorBlock} from "./EditorBlockInterfaces";
-import {ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_STYLE_ACTION} from "./TextBlockInterfaces";
+import {IEditorBlock} from "../../textor/interfaces/EditorBlockInterfaces";
+import {ITextBlockContent, TEXT_BLOCK_ACTION, TEXT_STYLE_ACTION} from "../textor-text/TextBlockInterfaces";
 
 export interface IListBlock extends IEditorBlock<ITextBlockContent[][]> {
   blockContents: ITextBlockContent[][];

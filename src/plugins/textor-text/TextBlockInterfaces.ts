@@ -1,10 +1,10 @@
-import {IEditorBlock} from "./EditorBlockInterfaces";
-import {HeadingTypeCode} from "../Block/TextBlock/HeadingBlock";
+import { IEditorBlock } from "../../textor/interfaces/EditorBlockInterfaces";
+import {HeadingTypeCode} from "../textor-heading/HeadingBlockPlugin";
 
 enum TEXT_BLOCK_ACTION {
   input = "input",
   delete = "delete",
-  origin = "origin"
+  origin = "origin",
 }
 
 interface ITextBlock extends IEditorBlock<ITextBlockContent[]> {
@@ -14,7 +14,7 @@ interface ITextBlock extends IEditorBlock<ITextBlockContent[]> {
   // getContents(): ITextBlockContent[];
   getTotalContentLength(): number;
   setPrevAction(newAction: TEXT_BLOCK_ACTION): void;
-  getPrevAction(): TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION
+  getPrevAction(): TEXT_BLOCK_ACTION | TEXT_STYLE_ACTION;
   // sync(currentContent: ChildNode): ITextBlockContent[];
   generateCopyContent(
     contentIndex: number,

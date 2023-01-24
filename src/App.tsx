@@ -1,85 +1,103 @@
 import "./App.css";
-import { Container } from "./textor-react/Container/Container";
-import React, { useCallback, useState } from "react";
-import {
-  HeadingBlock,
-  HeadingTypeCode,
-} from "./textor/Block/TextBlock/HeadingBlock";
-import {
-  TEXT_STYLE_ACTION,
-  TEXT_TYPE,
-} from "./textor/interfaces/TextBlockInterfaces";
-import { BLOCK_TYPE } from "./textor/interfaces/EditorBlockInterfaces";
-import { ListBlock } from "./textor/Block/ListBlock/ListBlock";
-import { useGenerateContainer } from "./textor-react/hooks/UseGenerateContainer";
-import { TextBlock } from "./textor/Block/TextBlock/TextBlock";
-import { generateUniqueId } from "./textor-react/utils/UniqueId";
+import {Container} from "./textor-react/Container/Container";
+import React, {useCallback, useState} from "react";
+import {TEXT_STYLE_ACTION, TEXT_TYPE,} from "./plugins/textor-text/TextBlockInterfaces";
+import {BLOCK_TYPE} from "./textor/interfaces/EditorBlockInterfaces";
+import {useGenerateTextor} from "./textor-react/hooks/UseGenerateTextor";
+import {generateUniqueId} from "./utils/UniqueId";
+import {Textor} from "./textor/Textor/Textor";
+import {TextBlockPlugin} from "./plugins/textor-text/TextBlockPlugin";
+import {HistoryPlugin} from "./plugins/textor-history/HistoryPlugin";
+import {TextBlockComponent} from "./plugins/textor-text/TextBlockComponent";
+import {ListBlockComponent} from "./plugins/textor-list/ListBlockComponent";
+import {HeadingBlockComponent} from "./plugins/textor-heading/HeadingBlockComponent";
+import {ListBlockPlugin} from "./plugins/textor-list/ListBlockPlugin";
+import {HeadingBlockPlugin, HeadingTypeCode} from "./plugins/textor-heading/HeadingBlockPlugin";
 
 function App() {
-  const containerInstance = useGenerateContainer();
+  const textorInstance = useGenerateTextor({
+    global: [HistoryPlugin],
+    [BLOCK_TYPE.TEXT]: [TextBlockPlugin],
+    [BLOCK_TYPE.LIST]: [ListBlockPlugin],
+    [BLOCK_TYPE.HEADING]: [HeadingBlockPlugin],
+  }, BLOCK_TYPE.TEXT);
+  const containerInstance = textorInstance.container;
 
-  const [blockArray, setBlockArray] = useState(
-    containerInstance.current.getBlocks()
-  );
+  const [blockArray, setBlockArray] = useState(containerInstance.getBlocks());
 
   const memoSetBlockArray = useCallback((newBlockArrayState) => {
     setBlockArray(newBlockArrayState.slice());
   }, []);
 
   const addHeading = (headingSize: HeadingTypeCode) => {
-    const headingBlock = new HeadingBlock(
-      generateUniqueId(),
+    const headingBlock = textorInstance.blockFactory(
       BLOCK_TYPE.HEADING,
-      [{ textType: TEXT_TYPE.heading, textContent: "heading测试" }],
-      headingSize
+      [generateUniqueId()],
+      [],
+      [
+        BLOCK_TYPE.HEADING,
+        [{ textType: TEXT_TYPE.heading, textContent: "heading测试" }],
+        headingSize,
+      ]
     );
-    const newEditorContents = containerInstance.current.insertBlock(
-      -1,
-      headingBlock
-    );
+    const newEditorContents = containerInstance.insertBlock(-1, headingBlock);
     memoSetBlockArray(newEditorContents);
   };
 
   const handleSelection = (type: TEXT_STYLE_ACTION) => {
-    const selectedInfo = containerInstance.current.getCurrentSelectedBlock();
+    const selectedInfo = containerInstance.getCurrentSelectedBlock();
     console.log("selected", selectedInfo);
     if (selectedInfo) {
-      const targetBlock = containerInstance.current.getBlockByKey(
+      const targetBlock = containerInstance.getBlockByKey(
         selectedInfo.blockKey
       );
       if (targetBlock !== 0) {
         console.log("founded");
-        (targetBlock as TextBlock).markSelectedText(
+        targetBlock.markSelectedText(
           type,
           selectedInfo.selectionStart,
           selectedInfo.selectionEnd
         );
         targetBlock.setKey(generateUniqueId());
-        console.log(
-          "after setting key",
-          containerInstance.current.getBlocks().slice()
-        );
-        memoSetBlockArray(containerInstance.current.getBlocks());
+        console.log("after setting key", containerInstance.getBlocks().slice());
+        memoSetBlockArray(containerInstance.getBlocks());
       }
     }
   };
 
   const addList = () => {
-    const listBlock = new ListBlock(generateUniqueId(), BLOCK_TYPE.LIST, [
-      [{ textContent: "", textType: TEXT_TYPE.list }],
-    ]);
-    const newEditorContents = containerInstance.current.insertBlock(
-      -1,
-      listBlock
+    const listBlock = textorInstance.blockFactory(
+      BLOCK_TYPE.LIST,
+      [generateUniqueId()],
+      [],
+      [BLOCK_TYPE.LIST, [[{ textContent: "", textType: TEXT_TYPE.list }]]]
     );
+    const newEditorContents = containerInstance.insertBlock(-1, listBlock);
     // const blocksArray = containerInstance.current.getBlocks().slice();
     // // due to useRef, manually calling rerendering
     memoSetBlockArray(newEditorContents);
   };
 
+  const testrun = () => {
+    const t1 = new Textor({
+      global: [HistoryPlugin],
+      [BLOCK_TYPE.TEXT]: [TextBlockPlugin],
+    }, BLOCK_TYPE.TEXT);
+    const blockFactory = t1.getBlockMap();
+    const textBlockFunction = blockFactory.get(BLOCK_TYPE.TEXT);
+    // @ts-ignore
+    const text1 = new textBlockFunction(
+      [generateUniqueId()],
+      [],
+      [BLOCK_TYPE.TEXT, []]
+    );
+    console.log(text1);
+    console.log(text1.getKey());
+  };
 
   return (
     <div className="App">
+      <button onClick={testrun}>TEST RUN</button>
       <button onClick={addList}>增加列表元素</button>
       <button
         onClick={() => {
@@ -98,7 +116,7 @@ function App() {
       <button
         onClick={() => {
           addHeading(HeadingTypeCode.three);
-          const blocksArray = containerInstance.current.getBlocks().slice();
+          const blocksArray = containerInstance.getBlocks().slice();
           // due to useRef, manually calling rerendering
           memoSetBlockArray(blocksArray);
         }}
@@ -149,14 +167,14 @@ function App() {
       </button>
       <button
         onClick={() => {
-          console.log(containerInstance.current.exportContents());
+          console.log(containerInstance.exportContents());
         }}
       >
         导出数据
       </button>
       <button
         onClick={() => {
-          containerInstance.current.importContents([
+          containerInstance.importContents([
             {
               key: 1663289834570,
               contents: [
@@ -214,15 +232,20 @@ function App() {
               nativeCopy: false,
             },
           ]);
-          memoSetBlockArray(containerInstance.current.getBlocks());
+          memoSetBlockArray(containerInstance.getBlocks());
         }}
       >
         导入数据
       </button>
       <Container
-        containerInstance={containerInstance}
+        textorInstance={textorInstance}
         blockArray={blockArray}
         setBlockArray={memoSetBlockArray}
+        plugins={[
+          { scope: BLOCK_TYPE.TEXT, renderFunction: TextBlockComponent },
+          { scope: BLOCK_TYPE.LIST, renderFunction: ListBlockComponent },
+          { scope: BLOCK_TYPE.HEADING, renderFunction: HeadingBlockComponent },
+        ]}
       />
     </div>
   );

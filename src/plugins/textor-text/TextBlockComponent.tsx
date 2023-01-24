@@ -1,16 +1,12 @@
 import React from "react";
-import { Block } from "../Block";
-import { EditorContainer } from "../../../textor/Container/EditorContainer";
-import { ITextBlockContent } from "../../../textor/interfaces/TextBlockInterfaces";
+import { Block } from "../../textor-react/Blocks/Block";
+import { EditorContainer } from "../../textor/Container/EditorContainer";
+import { ITextBlockContent } from "./TextBlockInterfaces";
 import {
-  handleTextBlur,
-  handleTextCopy,
   handleTextKeyDown,
-  handleTextPaste,
-  handleTextSelection,
-} from "../../utils/TextBlockManagement";
-import { TextBlock } from "../../../textor/Block/TextBlock/TextBlock";
-import { useCompositionInput } from "../../hooks/UseCompositionInput";
+} from "./utils/TextBlockManagement";
+import { useCompositionInput } from "../../textor-react/hooks/UseCompositionInput";
+import {handleTextCopy, handleTextBlur, handleTextPaste, handleTextSelection} from "../utils/textContentManagement";
 
 const TextBlockComponent = React.memo((props) => {
   const {
@@ -18,7 +14,7 @@ const TextBlockComponent = React.memo((props) => {
     containerInfo,
     syncState,
   }: {
-    blockInfo: TextBlock;
+    blockInfo: any;
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
   } = props;
@@ -87,7 +83,7 @@ const TextBlockComponent = React.memo((props) => {
     });
   };
 
-  const renderContent = (blockInfo: TextBlock) => {
+  const renderContent = (blockInfo: any) => {
     const textBlockContent = blockInfo.getContents();
     return parseTextBlockContents(textBlockContent);
   };

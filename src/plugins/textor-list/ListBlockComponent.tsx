@@ -1,16 +1,10 @@
 import React from "react";
-import { Block } from "../Block";
-import { EditorContainer } from "../../../textor/Container/EditorContainer";
-import { ITextBlockContent } from "../../../textor/interfaces/TextBlockInterfaces";
-import { ListBlock } from "../../../textor/Block/ListBlock/ListBlock";
-import {useCompositionInput} from "../../hooks/UseCompositionInput";
-import {
-  handleTextBlur,
-  handleTextCopy,
-  handleTextKeyDown,
-  handleTextPaste,
-  handleTextSelection
-} from "../../utils/TextBlockManagement";
+import { Block } from "../../textor-react/Blocks/Block";
+import { EditorContainer } from "../../textor/Container/EditorContainer";
+import { ITextBlockContent } from "../textor-text/TextBlockInterfaces";
+import {useCompositionInput} from "../../textor-react/hooks/UseCompositionInput";
+import {handleTextKeyDown} from "./utils/ListBlockManagement";
+import {handleTextCopy, handleTextBlur, handleTextPaste, handleTextSelection} from "../utils/textContentManagement";
 
 const ListBlockComponent = (props) => {
   const {
@@ -18,7 +12,7 @@ const ListBlockComponent = (props) => {
     containerInfo,
     syncState,
   }: {
-    blockInfo: ListBlock;
+    blockInfo
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
   } = props;
@@ -75,7 +69,7 @@ const ListBlockComponent = (props) => {
     );
   };
 
-  const renderContent = (blockInfo: ListBlock) => {
+  const renderContent = (blockInfo) => {
     const listContents = blockInfo.getContents();
     return parseListBlock(listContents);
   };

@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import "../../style/Block.css";
 import { CursorPosEnum } from "../../textor/interfaces/CursorInterfaces";
-import { EditorBlock } from "../../textor/Block/EditorBlock/EditorBlock";
 import { EditorContainer } from "../../textor/Container/EditorContainer";
 
 const Block = React.memo((props) => {
@@ -14,7 +13,7 @@ const Block = React.memo((props) => {
     outerContentEditable = true,
     ...config
   }: {
-    blockInfo: EditorBlock<any>;
+    blockInfo: any;
     containerInfo: EditorContainer;
     syncState: (HTMLElement) => void;
     renderContent: (EditorBlock) => HTMLElement;

@@ -1,5 +1,5 @@
-import {ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE} from "../../interfaces/TextBlockInterfaces";
-import {basicDeepClone} from "./EditorBlockManagement";
+import {ITextBlockContent, TEXT_STYLE_ACTION, TEXT_TYPE} from "../TextBlockInterfaces";
+import {basicDeepClone} from "../../../utils/JSONTool";
 
 /**
  * convert text to avoid replacement character
