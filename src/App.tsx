@@ -1,18 +1,18 @@
 import "./App.css";
-import {Container} from "./textor-react/Container/Container";
+import {Container} from "./textor-react/container/container";
 import React, {useCallback, useState} from "react";
-import {TEXT_STYLE_ACTION, TEXT_TYPE,} from "./plugins/textor-text/TextBlockInterfaces";
-import {BLOCK_TYPE} from "./textor/interfaces/EditorBlockInterfaces";
-import {useGenerateTextor} from "./textor-react/hooks/UseGenerateTextor";
-import {generateUniqueId} from "./utils/UniqueId";
-import {Textor} from "./textor/Textor/Textor";
-import {TextBlockPlugin} from "./plugins/textor-text/TextBlockPlugin";
-import {HistoryPlugin} from "./plugins/textor-history/HistoryPlugin";
-import {TextBlockComponent} from "./plugins/textor-text/TextBlockComponent";
-import {ListBlockComponent} from "./plugins/textor-list/ListBlockComponent";
-import {HeadingBlockComponent} from "./plugins/textor-heading/HeadingBlockComponent";
-import {ListBlockPlugin} from "./plugins/textor-list/ListBlockPlugin";
-import {HeadingBlockPlugin, HeadingTypeCode} from "./plugins/textor-heading/HeadingBlockPlugin";
+import {TEXT_STYLE_ACTION, TEXT_TYPE,} from "./plugins/text/text-block-interfaces";
+import {BLOCK_TYPE} from "./textor-core/interfaces/editor-block";
+import {useGenerateTextor} from "./textor-react/hooks/use-generate-textor";
+import {generateUniqueId} from "./utils/unique-id";
+import {Textor} from "./textor-core/textor/textor";
+import {TextBlockPlugin} from "./plugins/text/text-block-plugin";
+import {HistoryPlugin} from "./plugins/history/history-plugin";
+import {TextBlockComponent} from "./plugins/text/text-block-component";
+import {ListBlockComponent} from "./plugins/list/list-block-component";
+import {HeadingBlockComponent} from "./plugins/heading/heading-block-component";
+import {ListBlockPlugin} from "./plugins/list/list-block-plugin";
+import {HeadingBlockPlugin, HeadingTypeCode} from "./plugins/heading/heading-block-plugin";
 
 function App() {
   const textorInstance = useGenerateTextor({
