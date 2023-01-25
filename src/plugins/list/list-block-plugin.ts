@@ -7,6 +7,8 @@ import {annotateBlockContent, parseTextHTML} from "../text/text-block-plugin";
 
 export function ListBlockPlugin(type: string, blockContents: ITextBlockContent[][]) {
   this.type = type;
+  this.tunnelTrain({blockContents});
+  console.log("test", blockContents.slice());
   this.blockContents = blockContents;
   this.prevAction = null;
   this.nativeCopy = false;

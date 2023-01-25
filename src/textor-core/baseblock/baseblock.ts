@@ -1,7 +1,11 @@
+import { BLOCK_TYPE } from "../interfaces/editor-block";
+
 export function Baseblock(key: string) {
   this.key = key;
   this.type = null;
-  this.blockContents = [];
+  this.tunnelTrain = null;
+  this.blockContent = null;
+  this.tunnel = new Promise((resolve) => (this.tunnelTrain = resolve));
   this.ref = null;
 }
 
@@ -17,7 +21,7 @@ Baseblock.prototype.getType = function (): string {
   return this.type;
 };
 
-Baseblock.prototype.setType = function (newType: string): void {
+Baseblock.prototype.setType = function (newType: BLOCK_TYPE): void {
   this.type = newType;
 };
 
@@ -29,10 +33,10 @@ Baseblock.prototype.setRef = function (newRef: HTMLElement): void {
   this.ref = newRef;
 };
 
-Baseblock.prototype.getContents = function (): any[] {
+Baseblock.prototype.getContents = function (): unknown[] {
   return this.blockContents;
 };
 
-Baseblock.prototype.setContent = function (newContents: any[]) {
+Baseblock.prototype.setContent = function (newContents: unknown[]) {
   this.blockContents = newContents;
 };

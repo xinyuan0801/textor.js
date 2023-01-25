@@ -4,15 +4,20 @@ import { LinkedListNode } from "../../textor-core/utils/linked-list/linked-list-
 
 export function HistoryPlugin() {
   this.historyPtr = 0;
-  this.history = new LinkedList<any>(this.getContents());
-  this.currentEra = this.history.head.next;
+  this.tunnel.then((res) => {
+    console.log("set", res);
+    const {blockContents} = res
+    this.history = new LinkedList<any>(blockContents);
+    this.currentEra = this.history.head.next;
+  })
+
 }
 
 /**
  * record newest state in undo/redo history, use newHistory or current block contents if not provided.
  * @param newHistory
  */
-HistoryPlugin.prototype.recordHistory = function (newHistory?: any): void {
+HistoryPlugin.prototype.recordHistory = function (newHistory?: LinkedList<any>): void {
   const currentHistory = newHistory || basicDeepClone(this.getContents());
   // if pointer is not at latest history, create new history follow the era that pointer currently on
   if (this.historyPtr !== this.history.length - 1) {

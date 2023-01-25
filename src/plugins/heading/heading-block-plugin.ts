@@ -14,12 +14,21 @@ export enum HeadingTypeCode {
   two = "H2",
   three = "H3",
 }
+
+interface IHeadingBlockContent {
+  textType: TEXT_TYPE;
+  textContent: string;
+  headingSize?: HeadingTypeCode;
+  node?: HTMLElement;
+}
+
 export function HeadingBlockPlugin(
   type: string,
-  blockContents,
-  headingTypeCode
+  blockContents: IHeadingBlockContent[],
+  headingTypeCode: HeadingTypeCode
 ) {
   this.type = type;
+  this.tunnelTrain({blockContents});
   this.blockContents = blockContents;
   this.headingType = headingTypeCode;
   this.prevAction = TEXT_BLOCK_ACTION.origin;

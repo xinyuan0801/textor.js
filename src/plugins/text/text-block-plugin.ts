@@ -20,6 +20,7 @@ export function TextBlockPlugin(
   blockContents: ITextBlockContent[]
 ) {
   this.type = type;
+  this.tunnelTrain({blockContents});
   this.blockContents = blockContents;
   this.prevAction = TEXT_BLOCK_ACTION.origin;
   this.nativeCopy = true;
