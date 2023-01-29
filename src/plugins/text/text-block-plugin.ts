@@ -8,7 +8,7 @@ import { CursorPosEnum } from "../../textor-core/interfaces/cursor";
 import { setCursorPos } from "../utils/cursor-manager";
 import {
   checkInSelection,
-  checkSameContentType,
+  checkSameContentType, createMarkSelection,
   findFirstContent,
   generateNewContent,
   mergeContent,
@@ -185,6 +185,9 @@ TextBlockPlugin.prototype.markSelectedText = function (
     leftBound += currentContentOriginLength;
   }
   this.setContent(this.contentCleanUp(currentContent));
+  setTimeout(() => {
+    createMarkSelection(this, startIndex, endIndex);
+  }, 0)
   this.recordHistory();
   this.setPrevAction(TEXT_BLOCK_ACTION.origin);
 };

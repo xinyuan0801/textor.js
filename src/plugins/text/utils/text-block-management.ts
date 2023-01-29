@@ -316,6 +316,81 @@ function handleTextKeyDown(
   debounceSave(blockInfo, compositionInput);
 }
 
+function createMarkSelection(blockInstance: any, start: number, end: number) {
+  const blockInfo: ITextBlockContent[] = blockInstance.getContents();
+  const blockRef = blockInstance.getRef();
+  const currSelection = window.getSelection();
+  let newRange = new Range();
+  let startNode = null;
+  let startOffset = 0;
+  let endNode = null;
+  let endOffset = 0;
+  let startValue = start;
+  let endValue = end;
+  for (let i = 0; i < blockInfo.length; i++) {
+    if (
+      startValue - blockInfo[i].textContent.length < 0 &&
+      startNode === null
+    ) {
+      if (
+        !blockInfo[i].isMarked &&
+        !blockInfo[i].isBold &&
+        !blockInfo[i].isUnderline
+      ) {
+        startNode = blockRef.childNodes[i];
+        startOffset = startValue;
+      } else {
+        startNode = getTextNode(blockInfo[i].node);
+        startOffset = startValue;
+      }
+    }
+    if (startValue === 0 && startNode === null) {
+      if (
+        !blockInfo[i].isMarked &&
+        !blockInfo[i].isBold &&
+        !blockInfo[i].isUnderline
+      ) {
+        startNode = blockRef.childNodes[i];
+        startOffset = startValue;
+      } else {
+        startNode = getTextNode(blockInfo[i].node);
+        startOffset = startValue;
+      }
+    }
+    if (endValue - blockInfo[i].textContent.length <= 0) {
+      console.log("final check", blockInfo[i]);
+      if (
+        !blockInfo[i].isMarked &&
+        !blockInfo[i].isBold &&
+        !blockInfo[i].isUnderline
+      ) {
+        endNode = blockRef.childNodes[i];
+        endOffset = endValue;
+      } else {
+        endNode = getTextNode(blockInfo[i].node);
+        endOffset = endValue;
+      }
+      console.log("start", startNode, startOffset);
+      console.log("bound", endNode, endOffset);
+      break;
+    }
+    startValue -= blockInfo[i].textContent.length;
+    endValue -= blockInfo[i].textContent.length;
+  }
+  newRange.setStart(startNode, startOffset);
+  newRange.setEnd(endNode, endOffset);
+  currSelection.removeAllRanges();
+  currSelection.addRange(newRange);
+}
+
+function getTextNode(node): any {
+  let tempNode = node;
+  while (tempNode.nodeType !== 3) {
+    tempNode = tempNode.childNodes[0];
+  }
+  return tempNode;
+}
+
 export {
   normalTextConverter,
   generateNewContent,
@@ -324,4 +399,5 @@ export {
   checkSameContentType,
   mergeContent,
   handleTextKeyDown,
+  createMarkSelection,
 };

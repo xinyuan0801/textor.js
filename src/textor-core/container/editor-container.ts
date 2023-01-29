@@ -1,8 +1,5 @@
 import { CursorPosEnum } from "../interfaces/cursor";
-import {
-  IClipboardInfo,
-  ISelectedBlock,
-} from "../interfaces/editor-container";
+import { IClipboardInfo, ISelectedBlock } from "../interfaces/editor-container";
 import { BLOCK_TYPE } from "../interfaces/editor-block";
 
 export class EditorContainer {
@@ -111,6 +108,7 @@ export class EditorContainer {
   }
 
   setCurrentSelectedBlock(selectedBlockInfo: ISelectedBlock): void {
+    console.log(selectedBlockInfo);
     this.currentSelectedBlock = selectedBlockInfo;
   }
 
