@@ -1,6 +1,6 @@
 import { CursorPosEnum } from "./cursor";
-import {LinkedList} from "../utils/linked-list/linked-list";
-import {LinkedListNode} from "../utils/linked-list/linked-list-node";
+import {LinkedList} from "../../plugins/history/utils/linked-list/linked-list";
+import {LinkedListNode} from "../../plugins/history/utils/linked-list/linked-list-node";
 
 interface IEditorBlock<T> {
   key: string;
